@@ -45,10 +45,10 @@ main(){
 		dev-list|device-list)
 			BLOCK_DEV_get
 			;;
-		bl-list)
+		bl-list|bootloader-list)
 			BOOTLOADER_list
 			;;
-		bl-offset)
+		bl-offset|bootloader-offset)
 			if [ -z "$board" ]; then
 				echo "$0 ${cmd^^} BOARD" >&2
 				return 1
@@ -59,14 +59,14 @@ main(){
 			fi
 			echo $(BOOTLOADER_getOffset $board)
 			;;
-		bl-url)
+		bl-url|bootloader-url)
 			if [ -z "$board" ]; then
 				echo "$0 ${cmd^^} BOARD" >&2
 				return 1
 			fi
 			echo $(BOOTLOADER_getURL $board)
 			;;
-		bl-flash)
+		bl-flash|bootloader-flash)
 			if [ -z "$board" ]; then
 				echo "$0 ${cmd^^} BOARD [TARGET]" >&2
 				return 1
