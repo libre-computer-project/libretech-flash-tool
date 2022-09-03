@@ -2,6 +2,15 @@
 ## Objective
 Quickly deploy bootloaders and images to MicroSD or eMMC storage mediums destined for Libre Computer boards.
 
+## Warning
+This tool writes to raw blocks to the target device. Precautions such as 
+avoiding root target device have been implemented. However, it is impossible
+to account for all scenarios. Before this tool executes writes, it will
+display the write command to be executed. Please review it carefully before
+confirming the action. Some bootloaders will clobber the GPT entries at the
+beginning of the disk. Other bootloaders will write beyond the 1MB starting
+point for most partition tools. Make sure you know what you are doing!
+
 ## How to Use
 ```bash
 git clone https://github.com/libre-computer-project/libretech-flash-tool.git
