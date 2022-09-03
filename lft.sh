@@ -7,6 +7,7 @@ set -e
 cd $(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
 
 . lib/traps.sh
+. lib/toolkit.sh
 . lib/block-dev.sh
 . lib/bootloader.sh
 

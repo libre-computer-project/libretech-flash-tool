@@ -58,6 +58,8 @@ BOOTLOADER_flash(){
 	local board=$1
 	local bl=$2
 	local dev=$3
+	shift 3
+	
 	local dev_path=/dev/$dev
 	
 	if ! BLOCK_DEV_isValid $dev; then
@@ -103,22 +105,26 @@ BOOTLOADER_flash(){
 	
 	local bl_offset=$(BOOTLOADER_getOffset $board)
 	local bl_flash_cmd="dd if=$bl of=$dev_path oflag=sync bs=512 seek=$bl_offset status=progress"
-	echo "$FUNCNAME: $bl_flash_cmd" >&2	
-	echo "$FUNCNAME: run the above command to flash the target device?" >&2
-	while true; do
-		read -s -n 1 -p "(y/n)" confirm
-		echo
-		case "${confirm,,}" in
-			y|yes)
-				echo "$bl_flash_cmd"
-				break
-				;;
-			n|no)
-				echo "$FUNCNAME: operation cancelled." >&2
-				return 1
-				;;
-		esac
-	done
+	
+	if ! TOOLKIT_isInCaseInsensitive "force" "$@"; then
+		echo "$FUNCNAME: $bl_flash_cmd" >&2
+		echo "$FUNCNAME: run the above command to flash the target device?" >&2
+		while true; do
+			read -s -n 1 -p "(y/n)" confirm
+			echo
+			case "${confirm,,}" in
+				y|yes)
+					echo "$bl_flash_cmd"
+					break
+					;;
+				n|no)
+					echo "$FUNCNAME: operation cancelled." >&2
+					return 1
+					;;
+			esac
+		done
+	fi
+	
 	if $bl_flash_cmd; then
 		echo "$FUNCNAME: bootloader written to $dev successfully." >&2
 	else
