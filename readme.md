@@ -16,28 +16,28 @@ roc-rk3328-cc
 ./lft.sh dev-list
 sdb
 
-./lft.sh bl-flash aml-s905x-cc
-BOOTLOADER_get: downloading aml-s905x-cc bootloader to /tmp/tmp.qxl5vq5wBS.
+sudo ./lft.sh bl-flash aml-s905x-cc sdb
+BOOTLOADER_get: downloading aml-s905x-cc bootloader to /tmp/tmp.otrZBzPL4o.
 
---2022-09-02 23:44:39--  https://boot.libre.computer/ci/aml-s905x-cc
+--2022-09-02 23:48:50--  https://boot.libre.computer/ci/aml-s905x-cc
 Resolving boot.libre.computer (boot.libre.computer)... 192.53.162.101, 2600:3c00::f03c:93ff:fea1:358c
 Connecting to boot.libre.computer (boot.libre.computer)|192.53.162.101|:443... connected.
 HTTP request sent, awaiting response... 200 OK
 Length: 851968 (832K) [application/octet-stream]
-Saving to: ‘/tmp/tmp.qxl5vq5wBS’
+Saving to: ‘/tmp/tmp.otrZBzPL4o’
 
-/tmp/tmp.qxl5vq5wBS                100%[===============================================================>] 832.00K  4.77MB/s    in 0.2s    
+/tmp/tmp.otrZBzPL4o              100%[=======================================================>] 832.00K  3.45MB/s    in 0.2s    
 
-2022-09-02 23:44:40 (4.77 MB/s) - ‘/tmp/tmp.qxl5vq5wBS’ saved [851968/851968]
+2022-09-02 23:48:50 (3.45 MB/s) - ‘/tmp/tmp.otrZBzPL4o’ saved [851968/851968]
 
-BOOTLOADER_get: downloaded aml-s905x-cc bootloader to /tmp/tmp.qxl5vq5wBS.
-BOOTLOADER_flash: dd if=/tmp/tmp.qxl5vq5wBS of=/dev/null oflag=sync bs=512 seek=1 status=progress
-BOOTLOADER_flash: run the above command to flash the target device? (y/n)
-
-dd if=/tmp/tmp.qxl5vq5wBS of=/dev/null oflag=sync bs=512 seek=1 status=progress
+BOOTLOADER_get: downloaded aml-s905x-cc bootloader to /tmp/tmp.otrZBzPL4o.
+BOOTLOADER_flash: dd if=/tmp/tmp.otrZBzPL4o of=/dev/sdb oflag=sync bs=512 seek=1 status=progress
+BOOTLOADER_flash: run the above command to flash the target device?
+(y/n)
+dd if=/tmp/tmp.otrZBzPL4o of=/dev/sdb oflag=sync bs=512 seek=1 status=progress
+815616 bytes (816 kB, 796 KiB) copied, 2 s, 407 kB/s
 1664+0 records in
 1664+0 records out
-851968 bytes (852 kB, 832 KiB) copied, 0.00272618 s, 313 MB/s
-BOOTLOADER_flash: bootloader written to null successfully.
-
+851968 bytes (852 kB, 832 KiB) copied, 2.09354 s, 407 kB/s
+BOOTLOADER_flash: bootloader written to sdb successfully.
 ```
