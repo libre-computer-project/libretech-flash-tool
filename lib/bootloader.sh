@@ -65,6 +65,10 @@ BOOTLOADER_flash(){
 		return 1
 	fi
 	
+	if BLOCK_DEV_isMounted $dev; then
+		echo "$FUNCNAME: !!!WARNING!!! DEVICE $dev is mounted." >&2
+	fi
+	
 	if [ ! -w "$dev_path" ]; then
 		echo "$FUNCNAME: DEVICE $dev is not writable by current user $USER." >&2
 		return 1
@@ -92,10 +96,14 @@ BOOTLOADER_flash(){
 		echo "$FUNCNAME: BOARD $board bootloader does not match expected size." >&2
 		return 1
 	fi
+
+	if BLOCK_DEV_isMounted $dev; then
+		echo "$FUNCNAME: !!!WARNING!!! DEVICE $dev is mounted." >&2
+	fi
 	
 	local bl_offset=$(BOOTLOADER_getOffset $board)
 	local bl_flash_cmd="dd if=$bl of=$dev_path oflag=sync bs=512 seek=$bl_offset status=progress"
-	echo "$FUNCNAME: $bl_flash_cmd" >&2
+	echo "$FUNCNAME: $bl_flash_cmd" >&2	
 	echo "$FUNCNAME: run the above command to flash the target device? (y/n)" >&2
 	while true; do
 		read -s -n 1 confirm
@@ -112,7 +120,7 @@ BOOTLOADER_flash(){
 		esac
 	done
 	if $bl_flash_cmd; then
-		echo "$FUNCNAME: bootloader written to $dev." >&2
+		echo "$FUNCNAME: bootloader written to $dev successfully." >&2
 	else
 		echo "$FUNCNAME: bootloader write to $dev failed!" >&2
 		return 1

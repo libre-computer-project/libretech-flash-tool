@@ -3,6 +3,9 @@
 # Copyright (C) 2022 Da Xue <da@libre.computer>
 
 set -e
+
+cd $(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
+
 . lib/traps.sh
 . lib/block-dev.sh
 . lib/bootloader.sh
@@ -35,7 +38,7 @@ main(){
 	case ${cmd,,} in
 		help)
 			echo "COMMAND	[BOARD]	[TARGET]	[PARAMETERS]" >&2
-			echo "COMMAND	help board-list device-list bl-offset bl-url bl-flash " >&2
+			echo "COMMAND	help bl-list dev-list bl-offset bl-url bl-flash " >&2
 			return 1
 			;;
 		dev-list|device-list)

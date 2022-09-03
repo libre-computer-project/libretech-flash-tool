@@ -40,3 +40,17 @@ BLOCK_DEV_isValid(){
 	done
 	return 1
 }
+
+BLOCK_DEV_isMounted(){
+	local dev=$1
+	if [ "$dev" = "null" ]; then
+		return 1
+	fi
+	for blk_part in $(ls /dev/$dev*); do
+		local blk_mnt=$(findmnt -no TARGET $blk_part)
+		if [ ! -z "$blk_mnt" ]; then
+			return 0
+		fi
+	done
+	return 1
+}
