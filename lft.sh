@@ -38,10 +38,10 @@ main(){
 			echo "COMMAND	help board-list device-list bl-offset bl-url bl-flash " >&2
 			return 1
 			;;
-		device-list)
+		dev-list|device-list)
 			BLOCK_DEV_get
 			;;
-		board-list)
+		bl-list)
 			BOOTLOADER_list
 			;;
 		bl-offset)
