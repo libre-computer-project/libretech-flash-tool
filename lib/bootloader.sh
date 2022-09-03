@@ -13,7 +13,7 @@ declare -A BOOTLOADER_OFFSET=(
 	)
 
 BOOTLOADER_URL="https://boot.libre.computer/ci/"
-
+BOOTLOADER_BLK_SIZE=512
 BOOTLOADER_isValid(){
 	local board=$1
 	local _board
@@ -104,7 +104,7 @@ BOOTLOADER_flash(){
 	fi
 	
 	local bl_offset=$(BOOTLOADER_getOffset $board)
-	local bl_flash_cmd="dd if=$bl of=$dev_path oflag=sync bs=512 seek=$bl_offset status=progress"
+	local bl_flash_cmd="dd if=$bl of=$dev_path oflag=sync bs=$BOOTLOADER_BLK_SIZE seek=$bl_offset status=progress"
 	
 	if ! TOOLKIT_isInCaseInsensitive "force" "$@"; then
 		echo "$FUNCNAME: $bl_flash_cmd" >&2
@@ -127,6 +127,15 @@ BOOTLOADER_flash(){
 	
 	if $bl_flash_cmd; then
 		echo "$FUNCNAME: bootloader written to $dev successfully." >&2
+		if TOOLKIT_isInCaseInsensitive "verify" "$@"; then
+			local bl_sector_count=$(((bl_size+$BOOTLOADER_BLK_SIZE-1)/$BOOTLOADER_BLK_SIZE))
+			if cmp <(dd if=$bl bs=$BOOTLOADER_BLK_SIZE count=$bl_sector_count 2> /dev/null) \
+					<(dd if=$dev_path bs=$BOOTLOADER_BLK_SIZE count=$bl_sector_count skip=$bl_offset 2> /dev/null) > /dev/null; then
+				echo "$FUNCNAME: bootloader written to $dev verified." >&2
+			else
+				echo "$FUNCNAME: bootloader written to $dev failed verification!" >&2
+			fi
+		fi
 	else
 		echo "$FUNCNAME: bootloader write to $dev failed!" >&2
 		return 1
