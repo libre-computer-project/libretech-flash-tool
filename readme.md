@@ -1,4 +1,7 @@
 # Libre Computer Flash Tool
+## Objective
+Quickly deploy bootloaders and images to MicroSD or eMMC storage mediums destined for Libre Computer boards.
+
 ## How to Use
 ```bash
 git clone https://github.com/libre-computer-project/libretech-flash-tool.git
