@@ -9,7 +9,9 @@ cd $(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
 . lib/traps.sh
 . lib/toolkit.sh
 . lib/block-dev.sh
+. lib/board.sh
 . lib/bootloader.sh
+. lib/distro.sh
 
 #1 command {flash}
 #2 board
@@ -38,15 +40,21 @@ main(){
 	fi
 	case ${cmd,,} in
 		help)
-			echo "COMMAND	[BOARD]	[TARGET]	[PARAMETERS]" >&2
-			echo "COMMAND	help bl-list dev-list bl-offset bl-url bl-flash " >&2
+			echo "COMMAND	device-list board-list bootloader-help distro-help" >&2
 			return 1
 			;;
 		dev-list|device-list)
 			BLOCK_DEV_get
 			;;
-		bl-list|bootloader-list)
-			BOOTLOADER_list
+		b-list|board-list)
+			BOARD_list
+			;;
+		bl-help|bootloader-help)
+			echo "COMMAND	BOARD	[TARGET]	[PARAMETERS]" >&2
+			echo "bl-offset|bootloader-offset BOARD" >&2
+			echo "bl-url|bootloader-url BOARD" >&2
+			echo "bl-flash|bootloader-flash BOARD TARGET force|verify" >&2
+			return 1
 			;;
 		bl-offset|bootloader-offset)
 			if [ -z "$board" ]; then
@@ -80,10 +88,7 @@ main(){
 			traps_pop
 			traps_stop
 			;;
-		*)
-			echo "$FUNCNAME: COMMAND $cmd is not valid." >&2
-			exit 1
-			;;
+			
 	esac
 }
 

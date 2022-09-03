@@ -25,13 +25,6 @@ BOOTLOADER_isValid(){
 	return 1
 }
 
-BOOTLOADER_list(){
-	local _board
-	for _board in ${!BOOTLOADER_OFFSET[@]}; do
-		echo $_board
-	done
-}
-
 BOOTLOADER_getOffset(){
 	echo -n ${BOOTLOADER_OFFSET[$1]}
 }

@@ -18,7 +18,7 @@ this tool! This is your first and only warning.
 git clone https://github.com/libre-computer-project/libretech-flash-tool.git
 cd libretech-flash-tool
 
-./lft.sh bl-list
+./lft.sh board-list
 aml-s905x-cc-v2
 aml-s905x-cc
 all-h3-cc-h5
