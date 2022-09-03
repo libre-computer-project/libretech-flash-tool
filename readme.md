@@ -9,7 +9,9 @@ to account for all scenarios. Before this tool executes writes, it will
 display the write command to be executed. Please review it carefully before
 confirming the action. Some bootloaders will clobber the GPT entries at the
 beginning of the disk. Other bootloaders will write beyond the 1MB starting
-point for most partition tools. Make sure you know what you are doing!
+point for most partition tools. Make sure you know what you are doing! If the
+device you are trying to flash holds important data, back it up before using
+this tool! This is your first and only warning.
 
 ## How to Use
 ```bash
