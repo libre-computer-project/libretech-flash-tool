@@ -97,7 +97,7 @@ BOOTLOADER_flash(){
 	fi
 	
 	local bl_offset=$(BOOTLOADER_getOffset $board)
-	local bl_flash_cmd="dd if=$bl of=$dev_path oflag=sync bs=$BOOTLOADER_BLK_SIZE seek=$bl_offset status=progress"
+	local bl_flash_cmd="dd if=$bl of=$dev_path bs=$BOOTLOADER_BLK_SIZE seek=$bl_offset status=progress"
 	
 	if ! TOOLKIT_isInCaseInsensitive "force" "$@"; then
 		echo "$FUNCNAME: $bl_flash_cmd" >&2
@@ -119,6 +119,7 @@ BOOTLOADER_flash(){
 	fi
 	
 	if $bl_flash_cmd; then
+		sync $dev_path
 		echo "$FUNCNAME: bootloader written to $dev successfully." >&2
 		if TOOLKIT_isInCaseInsensitive "verify" "$@"; then
 			local bl_sector_count=$(((bl_size+$BOOTLOADER_BLK_SIZE-1)/$BOOTLOADER_BLK_SIZE))
