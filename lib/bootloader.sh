@@ -26,7 +26,15 @@ BOOTLOADER_isValid(){
 }
 
 BOOTLOADER_getOffset(){
-	echo -n ${BOOTLOADER_OFFSET[$1]}
+	local board=$1
+	while [ -z "${BOOTLOADER_OFFSET[$board]}" ]; do
+		board="${board%-*}"
+		if [ -z "$board" ]; then
+			echo "$FUNCNAME: BOARD $1 is not supported" >&2
+			return 1
+		fi
+	done
+	echo -n ${BOOTLOADER_OFFSET[$board]}
 }
 
 BOOTLOADER_getURL(){
