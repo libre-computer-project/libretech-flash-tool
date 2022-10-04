@@ -4,7 +4,7 @@
 
 set -e
 
-cd $(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
+cd $(dirname $(readlink -f "${BASH_SOURCE[0]}"))
 
 . lib/traps.sh
 . lib/toolkit.sh
