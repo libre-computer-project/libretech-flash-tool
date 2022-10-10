@@ -27,6 +27,10 @@ BOOTLOADER_isValid(){
 
 BOOTLOADER_getOffset(){
 	local board=$1
+	if [ "${board##*-}" = "spiflash" ]; then
+		echo -n 0
+		return
+	fi
 	while [ -z "${BOOTLOADER_OFFSET[$board]}" ]; do
 		board="${board%-*}"
 		if [ -z "$board" ]; then
