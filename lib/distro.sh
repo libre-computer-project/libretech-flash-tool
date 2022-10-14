@@ -37,7 +37,7 @@ DISTRO_get(){
 	local dist=$2
 	echo "$FUNCNAME: downloading $url to $dist."
 	echo
-	wget -O $dist "$url" 2>&1
+	wget -O - "$url" | xz -cd > $dist
 	echo "$FUNCNAME: downloaded $url to $dist."
 }
 
