@@ -18,6 +18,10 @@ declare -A DISTRO_RASPBIAN_RELEASE=(
 	[11]="Bullseye"
 	)
 
+declare -A DISTRO_RASPBIAN_RELEASE_PREFIX=(
+	[11]="2022-09-06-raspbian-bullseye-"
+	)
+
 DISTRO_URL="https://distro.libre.computer/ci"
 DISTRO_SHA256SUM=SHA256SUMS
 
@@ -74,7 +78,7 @@ DISTRO_list(){
 		echo "$FUNCNAME: DISTRO RELEASE $distro $release manifest retreival failed." >&2
 		return 1
 	fi
-	local variants=$(echo "$sha256sums" | sed "s/^.*$release_prefix//" | sed "s/+.*.img.[gx]z//" | sed "s/^$release_prefix//" | sed "s/-\(armhf\|arm64\)//" | sort | uniq)
+	local variants=$(echo "$sha256sums" | sed "s/^.*$release_prefix//" | sed -E "s/-?arm(hf|64)-?//" | sed "s/+.*.img.[gx]z//" | sed "s/^$/desktop/" | sort | uniq)
 	if [ -z "$variants" ]; then
 		echo "$FUNCNAME: DISTRO RELEASE $distro $release variants are not available." >&2
 		return 1
@@ -96,7 +100,7 @@ DISTRO_list(){
 		echo "$FUNCNAME: DISTRO RELEASE VARIANT $distro $release $variant is not available." >&2
 		return 1
 	fi
-	local boards=$(echo "$sha256sums" | sed "s/^.*$release_prefix//" | sed "s/-\(armhf\|arm64\)//" | grep "$variant" | sed "s/$variant//" | sed "s/^+//" | sed "s/.img.[gx]z//")
+	local boards=$(echo "$sha256sums" | sed "s/^.*$release_prefix//" | sed -E "s/-?arm(hf|64)-?//" | sed "s/.img.[gx]z//" | sed "s/^+/desktop+/" | grep "$variant" | sed "s/$variant//" | sed "s/+//" )
 	if [ -z "$1" ]; then
 		echo "$boards"
 		return
@@ -114,7 +118,11 @@ DISTRO_list(){
 		echo "$FUNCNAME: DISTRO RELEASE VARIANT BOARD $distro $release $variant $board is not available." >&2
 		return 1
 	fi
+	if [ "$distro" = "raspbian" -a "$variant" = "desktop" ]; then
+	local row=$(echo "$sha256sums" | grep "$release_prefix" | grep -v "\\-lite" | grep "+$board.img.[gx]z" | tac -s ' ')
+	else
 	local row=$(echo "$sha256sums" | grep "$release_prefix" | grep "$variant" | grep "+$board.img.[gx]z" | tac -s ' ')
+	fi
 	if [ $? -ne 0 ]; then
 		echo "$FUNCNAME: Internal error. Please submit a bug report!" >&2
 		return 1
