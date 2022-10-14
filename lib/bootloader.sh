@@ -32,7 +32,7 @@ BOOTLOADER_getOffset(){
 		return
 	fi
 	while [ -z "${BOOTLOADER_OFFSET[$board]}" ]; do
-		board="${board%-*}"
+		local board="${board%-*}"
 		if [ -z "$board" ]; then
 			echo "$FUNCNAME: BOARD $1 is not supported" >&2
 			return 1
@@ -46,8 +46,7 @@ BOOTLOADER_getURL(){
 }
 
 BOOTLOADER_getHeaders(){
-	local board=$1
-	wget -S --spider "https://boot.libre.computer/ci/$board" 2>&1
+	WGET_getHeaders "$BOOTLOADER_URL/$1"
 }
 
 BOOTLOADER_get(){
@@ -55,7 +54,7 @@ BOOTLOADER_get(){
 	local bl=$2
 	echo "$FUNCNAME: downloading $board bootloader to $bl."
 	echo
-	wget -O $bl "https://boot.libre.computer/ci/$board" 2>&1
+	wget -O $bl "$BOOTLOADER_URL/$board" 2>&1
 	echo "$FUNCNAME: downloaded $board bootloader to $bl."
 }
 
