@@ -29,7 +29,7 @@ DISTRO_getURL(){
 }
 
 DISTRO_getSHA256SUMS(){
-	wget -O - $(DISTRO_getURL $1 $2 $DISTRO_SHA256SUM)
+	wget -O - $(DISTRO_getURL $1 $2 $DISTRO_SHA256SUM) 2> /dev/null
 }
 
 DISTRO_get(){
@@ -74,7 +74,7 @@ DISTRO_list(){
 		echo "$FUNCNAME: DISTRO RELEASE $distro $release manifest retreival failed." >&2
 		return 1
 	fi
-	local variants=$(echo "$sha256sums" | sed "s/.*\///" | sed "s/+.*.img.[gx]z//" | sed "s/^$release_prefix//" | sed "s/-\(armhf\|arm64\)//" | sort | uniq)
+	local variants=$(echo "$sha256sums" | sed "s/^.*$release_prefix//" | sed "s/+.*.img.[gx]z//" | sed "s/^$release_prefix//" | sed "s/-\(armhf\|arm64\)//" | sort | uniq)
 	if [ -z "$variants" ]; then
 		echo "$FUNCNAME: DISTRO RELEASE $distro $release variants are not available." >&2
 		return 1
@@ -96,7 +96,7 @@ DISTRO_list(){
 		echo "$FUNCNAME: DISTRO RELEASE VARIANT $distro $release $variant is not available." >&2
 		return 1
 	fi
-	local boards=$(echo "$sha256sums" | sed "s/.*\///" | sed "s/^$release_prefix//" | sed "s/-\(armhf\|arm64\)//" | grep "$variant" | sed "s/$variant//" | sed "s/^+//" | sed "s/.img.[gx]z//")
+	local boards=$(echo "$sha256sums" | sed "s/^.*$release_prefix//" | sed "s/-\(armhf\|arm64\)//" | grep "$variant" | sed "s/$variant//" | sed "s/^+//" | sed "s/.img.[gx]z//")
 	if [ -z "$1" ]; then
 		echo "$boards"
 		return
@@ -159,20 +159,21 @@ DISTRO_flash(){
 		fi
 		return 1
 	fi
-	local dist_size=$(grep -oi "Content-Length:\s\+[0-9]*" $dist | tail -n 1 | tr -s " " | cut -f 2 -d " ")
-	if [ "$dist_size" -lt $((100*1024*1024)) ]; then
-		echo "$FUNCNAME: DISTRO size is unexpectedly small." >&2
-		return 1
-	fi
+	#local dist_size=$(grep -oi "Content-Length:\s\+[0-9]*" $dist | tail -n 1 | tr -s " " | cut -f 2 -d " ")
+	#if [ "$dist_size" -lt $((100*1024*1024)) ]; then
+	#	echo "$FUNCNAME: DISTRO size is unexpectedly small." >&2
+	#	return 1
+	#fi
 	if ! DISTRO_get "$url" $dist; then
 		echo "$FUNCNAME: DISTRO could not be downloaded." >&2
 		return 1
 	fi
 
-	if [ $(stat -c %s $dist) -ne $dist_size ]; then
-		echo "$FUNCNAME: DISTRO does not match expected size." >&2
-		return 1
-	fi
+	#if [ $(stat -c %s $dist) -ne $dist_size ]; then
+	#	echo "$FUNCNAME: DISTRO does not match expected size." >&2
+	#	return 1
+	#fi
+	local dist_size=$(stat -c %s $dist)
 
 	if BLOCK_DEV_isMounted $dev; then
 		echo "$FUNCNAME: !!!WARNING!!! DEVICE $dev is mounted." >&2
@@ -203,7 +204,7 @@ DISTRO_flash(){
 		[ "$dev" = "null" ] || sync $dev_path
 		echo "$FUNCNAME: distro written to $dev successfully." >&2
 		if TOOLKIT_isInCaseInsensitive "verify" "$@"; then
-			if cmp <(dd if=$dist bs=1M 2> /dev/null) \
+			if cmp <(dd if=$dist bs=$dist_size count=1 2> /dev/null) \
 					<(dd if=$dev_path bs=$dist_size count=1 2> /dev/null) > /dev/null; then
 				echo "$FUNCNAME: distro written to $dev verified." >&2
 			else
