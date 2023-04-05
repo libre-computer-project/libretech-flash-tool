@@ -3,6 +3,7 @@
 # Copyright (C) 2022 Da Xue <da@libre.computer>
 
 BLOCK_DEV_get(){
+	local blk_show_all=${1:-0}
 	local blk_devs=$(lsblk -dn | cut -f 1 -d " ")
 	local blk_dev
 	local blk_part
@@ -22,7 +23,7 @@ BLOCK_DEV_get(){
 					;;
 			esac
 		done
-		if [ "$blk_show" -eq 1 ]; then
+		if [ "$blk_show" -eq 1 -o "$blk_show_all" -eq 1 ]; then
 			echo $blk_dev
 		fi
 	done
@@ -30,10 +31,11 @@ BLOCK_DEV_get(){
 
 BLOCK_DEV_isValid(){
 	local dev=$1
+	local blk_show_all=${2:-0}
 	if [ "$dev" = "null" ]; then
 		return 0
 	fi
-	for _dev in $(BLOCK_DEV_get); do
+	for _dev in $(BLOCK_DEV_get $blk_show_all); do
 		if [ "$dev" = "$_dev" ]; then
 			return 0
 		fi

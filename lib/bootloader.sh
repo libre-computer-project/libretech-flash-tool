@@ -63,10 +63,14 @@ BOOTLOADER_flash(){
 	local bl=$2
 	local dev=$3
 	shift 3
-	
+	TOOLKIT_isInCaseInsensitive "force" "$@"
+	local force=$((1-$?))
+	TOOLKIT_isInCaseInsensitive "verify" "$@"; then
+	local verify=$((1-$?))
+
 	local dev_path=/dev/$dev
 	
-	if ! BLOCK_DEV_isValid $dev; then
+	if ! BLOCK_DEV_isValid $dev $force; then
 		echo "$FUNCNAME: DEVICE $dev is not a valid target." >&2
 		return 1
 	fi
@@ -110,7 +114,7 @@ BOOTLOADER_flash(){
 	local bl_offset=$(BOOTLOADER_getOffset $board)
 	local bl_flash_cmd="dd if=$bl of=$dev_path bs=$BOOTLOADER_BLK_SIZE seek=$bl_offset status=progress"
 	
-	if ! TOOLKIT_isInCaseInsensitive "force" "$@"; then
+	if [ "$force" -eq 0 ]; then
 		echo "$FUNCNAME: $bl_flash_cmd" >&2
 		echo "$FUNCNAME: run the above command to flash the target device?" >&2
 		while true; do
@@ -132,7 +136,7 @@ BOOTLOADER_flash(){
 	if $bl_flash_cmd; then
 		sync $dev_path
 		echo "$FUNCNAME: bootloader written to $dev successfully." >&2
-		if TOOLKIT_isInCaseInsensitive "verify" "$@"; then
+		if [ "$verify" -eq 1 ]; then
 			local bl_sector_count=$(((bl_size+$BOOTLOADER_BLK_SIZE-1)/$BOOTLOADER_BLK_SIZE))
 			if cmp <(dd if=$bl bs=$BOOTLOADER_BLK_SIZE count=$bl_sector_count 2> /dev/null) \
 					<(dd if=$dev_path bs=$BOOTLOADER_BLK_SIZE count=$bl_sector_count skip=$bl_offset 2> /dev/null) > /dev/null; then

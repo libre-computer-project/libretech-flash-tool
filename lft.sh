@@ -75,6 +75,9 @@ main(){
 		dev-list|device-list)
 			BLOCK_DEV_get
 			;;
+		dev-list-all|device-list-all)
+			BLOCK_DEV_get 1
+			;;
 		b-list|board-list)
 			BOARD_list
 			;;
