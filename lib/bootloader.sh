@@ -64,10 +64,14 @@ BOOTLOADER_flash(){
 	local bl=$2
 	local dev=$3
 	shift 3
-	TOOLKIT_isInCaseInsensitive "force" "$@"
-	local force=$((1-$?))
-	TOOLKIT_isInCaseInsensitive "verify" "$@"
-	local verify=$((1-$?))
+	local force=0
+	if TOOLKIT_isInCaseInsensitive "force" "$@"; then
+		local force=1
+	fi
+	local verify=0
+	if TOOLKIT_isInCaseInsensitive "verify" "$@"; then
+		local verify=1
+	fi
 
 	local dev_path=/dev/$dev
 	
