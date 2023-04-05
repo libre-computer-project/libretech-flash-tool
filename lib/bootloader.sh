@@ -8,6 +8,7 @@ declare -A BOOTLOADER_OFFSET=(
 	[aml-s805x-ac]=1
 	[aml-s905x-cc]=1
 	[aml-s905x-cc-v2]=1
+	[aml-s905d-pc]=1
 	[roc-rk3328-cc]=64
 	[roc-rk3399-pc]=64
 	)
@@ -65,7 +66,7 @@ BOOTLOADER_flash(){
 	shift 3
 	TOOLKIT_isInCaseInsensitive "force" "$@"
 	local force=$((1-$?))
-	TOOLKIT_isInCaseInsensitive "verify" "$@"; then
+	TOOLKIT_isInCaseInsensitive "verify" "$@"
 	local verify=$((1-$?))
 
 	local dev_path=/dev/$dev
