@@ -8,6 +8,7 @@ declare -a BOARD_LIST=(
 	"aml-s805x-ac"
 	"aml-s905x-cc"
 	"aml-s905x-cc-v2"
+	"aml-s905d-pc"
 	"roc-rk3328-cc"
 	"roc-rk3399-pc"
 	)
