@@ -9,8 +9,9 @@ cd $(dirname $(readlink -f "${BASH_SOURCE[0]}"))
 . lib/traps.sh
 . lib/toolkit.sh
 . lib/wget.sh
-. lib/block-dev.sh
+. lib/dmi.sh
 . lib/board.sh
+. lib/block-dev.sh
 . lib/bootloader.sh
 . lib/distro.sh
 
