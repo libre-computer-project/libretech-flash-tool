@@ -59,10 +59,19 @@ BOARD_EMMC_isBound(){
 
 BOARD_EMMC_bind(){
 	local board=${1:-$(BOARD_NAME_get)}
+	BOARD_EMMC_isBound && return
 	echo -n ${BOARD_EMMC_DT_NODE[$board]} > $BOARD_DRIVER_PATH/${BOARD_EMMC_DRIVER[$board]}/bind
 }
 
 BOARD_EMMC_unbind(){
 	local board=$(BOARD_NAME_get)
-	echo -n ${BOARD_EMMC_DT_NODE[$board]} > $BOARD_DRIVER_PATH/${BOARD_EMMC_DRIVER[$board]}/unbind
+	BOARD_EMMC_isBound && echo -n ${BOARD_EMMC_DT_NODE[$board]} > $BOARD_DRIVER_PATH/${BOARD_EMMC_DRIVER[$board]}/unbind
+}
+
+BOARD_EMMC_show(){
+	echo "Not Implemented." >&2
+}
+
+BOARD_EMMC_test(){
+	echo "Not Implemented." >&2
 }

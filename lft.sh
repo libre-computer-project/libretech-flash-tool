@@ -26,7 +26,13 @@ main(){
 		local cmd=$1
 		shift
 	fi
-	if [ "${cmd%%-*}" = "bl" -o "${cmd%%-*}" = "bootloader" ]; then 
+	if [ "${cmd%%-*}" = "b" -o "${cmd%%-*}" = "board" ]; then
+		local action
+		if [ ! -z "$1" ]; then
+			local board=${1,,}
+			shift
+		fi
+	elif [ "${cmd%%-*}" = "bl" -o "${cmd%%-*}" = "bootloader" ]; then 
 		local board
 		if [ ! -z "$1" ]; then
 			local board=${1,,}
@@ -79,8 +85,25 @@ main(){
 		dev-list-all|device-list-all)
 			BLOCK_DEV_get 1
 			;;
+		b-help|board-help)
+			echo "COMMAND BOARD [DEVICE] [PARAMETERS]" >&2
+			echo "b-list|board-list" >&2
+			echo "b-emmc|board-emmc status" >&2
+			echo "b-emmc|board-emmc bind|unbind" >&2
+			echo "b-emmc|board-emmc show" >&2
+			echo "b-emmc|board-emmc test read|write" >&2
+			;;
 		b-list|board-list)
 			BOARD_list
+			;;
+		b-emmc|board-emmc)
+			case ${action,,} in
+				"status")
+					BOARD_EMMC_isBound
+					;;
+				"bind"|"unbind"|"test")
+					BOARD_EMMC_${action} "${param[@]}"
+			esac
 			;;
 		bl-help|bootloader-help)
 			echo "COMMAND BOARD [DEVICE] [PARAMETERS]" >&2
@@ -131,7 +154,7 @@ main(){
 			DISTRO_list $distro $release $variant $board
 			;;
 		dist-flash|distro-flash)
-			DISTRO_flash $distro $release $variant $board $dev ${param[@]}
+			DISTRO_flash $distro $release $variant $board $dev "${param[@]}"
 			;;
 		*)
 			echo "$FUNCNAME: COMMAND $cmd is not valid." >&2
