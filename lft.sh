@@ -12,8 +12,6 @@ cd $(dirname $(readlink -f "${BASH_SOURCE[0]}"))
 . lib/dmi.sh
 . lib/board.sh
 . lib/block-dev.sh
-. lib/bootloader.sh
-. lib/distro.sh
 
 #1 command {flash}
 #2 board
@@ -29,10 +27,11 @@ main(){
 	if [ "${cmd%%-*}" = "b" -o "${cmd%%-*}" = "board" ]; then
 		local action
 		if [ ! -z "$1" ]; then
-			local board=${1,,}
+			local action=${1,,}
 			shift
 		fi
 	elif [ "${cmd%%-*}" = "bl" -o "${cmd%%-*}" = "bootloader" ]; then 
+		. lib/bootloader.sh
 		local board
 		if [ ! -z "$1" ]; then
 			local board=${1,,}
@@ -44,6 +43,7 @@ main(){
 			shift
 		fi
 	elif [ "${cmd%%-*}" = "dist" -o "${cmd%%-*}" = "distro" ]; then
+		. lib/distro.sh
 		local distro
 		if [ ! -z "$1" ]; then
 			local distro=${1,,}
@@ -76,7 +76,7 @@ main(){
 	fi
 	case ${cmd,,} in
 		help)
-			echo "COMMAND device-list board-list bootloader-help distro-help" >&2
+			echo "COMMAND device-list board-help bootloader-help distro-help" >&2
 			return 1
 			;;
 		dev-list|device-list)
@@ -103,6 +103,7 @@ main(){
 					;;
 				"bind"|"unbind"|"test")
 					BOARD_EMMC_${action} "${param[@]}"
+					;;
 			esac
 			;;
 		bl-help|bootloader-help)
