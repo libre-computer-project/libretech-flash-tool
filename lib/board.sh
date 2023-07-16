@@ -63,7 +63,12 @@ BOARD_EMMC_bind(){
 		echo "$FUNCNAME: eMMC already bound." >&2
 		return 1
 	fi
-	echo -n ${BOARD_EMMC_DT_NODE[$board]} > $BOARD_DRIVER_PATH/${BOARD_EMMC_DRIVER[$board]}/bind
+	local driver_bind=$BOARD_DRIVER_PATH/${BOARD_EMMC_DRIVER[$board]}/bind
+	if [ ! -w "$driver_bind" ]; then
+		echo "$FUNCNAME: eMMC write permission denied." >&2
+		return 1
+	fi
+	echo -n ${BOARD_EMMC_DT_NODE[$board]} > $driver_bind
 }
 
 BOARD_EMMC_unbind(){
@@ -72,7 +77,12 @@ BOARD_EMMC_unbind(){
 		echo "$FUNCNAME: eMMC not bound." >&2
 		return 1
 	fi
-	echo -n ${BOARD_EMMC_DT_NODE[$board]} > $BOARD_DRIVER_PATH/${BOARD_EMMC_DRIVER[$board]}/unbind
+	local driver_unbind=$BOARD_DRIVER_PATH/${BOARD_EMMC_DRIVER[$board]}/unbind
+	if [ ! -w "$driver_unbind" ]; then
+		echo "$FUNCNAME: eMMC write permission denied." >&2
+		return 1
+	fi
+	echo -n ${BOARD_EMMC_DT_NODE[$board]} > $driver_unbind
 }
 
 BOARD_EMMC_show(){
