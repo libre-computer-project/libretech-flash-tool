@@ -89,7 +89,7 @@ main(){
 			echo "COMMAND BOARD [DEVICE] [PARAMETERS]" >&2
 			echo "b-list|board-list" >&2
 			echo "b-emmc|board-emmc status" >&2
-			echo "b-emmc|board-emmc bind|unbind" >&2
+			echo "b-emmc|board-emmc bind|unbind|rebind" >&2
 			echo "b-emmc|board-emmc show" >&2
 			echo "b-emmc|board-emmc test read|write" >&2
 			;;
@@ -101,7 +101,7 @@ main(){
 				"status")
 					BOARD_EMMC_isBound
 					;;
-				"bind"|"unbind"|"test")
+				"bind"|"unbind"|"rebind"|"test")
 					BOARD_EMMC_${action} "${param[@]}"
 					;;
 			esac

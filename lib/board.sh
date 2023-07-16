@@ -59,7 +59,7 @@ BOARD_EMMC_isBound(){
 
 BOARD_EMMC_bind(){
 	local board=${1:-$(BOARD_NAME_get)}
-	if BOARD_EMMC_isBound; then
+	if BOARD_EMMC_isBound $board; then
 		echo "$FUNCNAME: eMMC already bound." >&2
 		return 1
 	fi
@@ -73,7 +73,7 @@ BOARD_EMMC_bind(){
 
 BOARD_EMMC_unbind(){
 	local board=$(BOARD_NAME_get)
-	if ! BOARD_EMMC_isBound; then
+	if ! BOARD_EMMC_isBound $board; then
 		echo "$FUNCNAME: eMMC not bound." >&2
 		return 1
 	fi
@@ -83,6 +83,15 @@ BOARD_EMMC_unbind(){
 		return 1
 	fi
 	echo -n ${BOARD_EMMC_DT_NODE[$board]} > $driver_unbind
+}
+
+BOARD_EMMC_rebind(){
+	local board=$(BOARD_NAME_get)
+	if BOARD_EMMC_isBound $board; then
+		BOARD_EMMC_unbind $board
+	fi
+	sleep 1
+	BOARD_EMMC_bind $board
 }
 
 BOARD_EMMC_show(){
