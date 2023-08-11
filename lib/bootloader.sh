@@ -5,10 +5,12 @@
 declare -A BOOTLOADER_OFFSET=(
 	[all-h3-cc-h3]=16
 	[all-h3-cc-h5]=16
+	[aml-a311d-cc]=1
 	[aml-s805x-ac]=1
 	[aml-s905x-cc]=1
 	[aml-s905x-cc-v2]=1
 	[aml-s905d-pc]=1
+	[aml-s905d3-cc]=1
 	[roc-rk3328-cc]=64
 	[roc-rk3399-pc]=64
 	)
@@ -36,11 +38,12 @@ BOOTLOADER_getOffset(){
 		return
 	fi
 	while [ -z "${BOOTLOADER_OFFSET[$board]}" ]; do
-		local board="${board%-*}"
-		if [ -z "$board" ]; then
+		local board_new="${board%-*}"
+		if [ -z "$board_new" ] || [ "$board_new" = "$board" ]; then
 			echo "$FUNCNAME: BOARD $1 is not supported" >&2
 			return 1
 		fi
+		local board="$board_new"
 	done
 	echo -n ${BOOTLOADER_OFFSET[$board]}
 }
@@ -119,8 +122,15 @@ BOOTLOADER_flash(){
 		echo "$FUNCNAME: !!!WARNING!!! DEVICE $dev is mounted." >&2
 	fi
 	
+	local bl_dd_seek=""
 	local bl_offset=$(BOOTLOADER_getOffset $board)
-	local bl_flash_cmd="dd if=$bl of=$dev_path bs=$BOOTLOADER_BLK_SIZE seek=$bl_offset status=progress"
+	if [ $bl_offset -eq 0 ]; then
+		local bl_block_size=1M
+	else
+		local bl_block_size=$BOOTLOADER_BLK_SIZE
+		local bl_dd_seek="seek=$bl_offset"
+	fi
+	local bl_flash_cmd="dd if=$bl of=$dev_path bs=$bl_block_size $bl_dd_seek status=progress"
 	
 	if [ "$force" -eq 0 ]; then
 		echo "$FUNCNAME: $bl_flash_cmd" >&2

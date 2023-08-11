@@ -5,10 +5,12 @@
 declare -a BOARD_LIST=(
 	"all-h3-cc-h3"
 	"all-h3-cc-h5"
+	"aml-a311d-cc"
 	"aml-s805x-ac"
 	"aml-s905x-cc"
 	"aml-s905x-cc-v2"
 	"aml-s905d-pc"
+	"aml-s905d3-cc"
 	"roc-rk3328-cc"
 	"roc-rk3399-pc"
 	)
@@ -23,10 +25,12 @@ BOARD_list(){
 declare -A BOARD_EMMC_DT_NODE=(
 	[all-h3-cc-h3]=1c11000.mmc
 	[all-h3-cc-h5]=1c11000.mmc
+	[aml-a311d-cc]=ffe07000.mmc
 	[aml-s805x-ac]=d0074000.mmc
 	[aml-s905x-cc]=d0074000.mmc
 	[aml-s905x-cc-v2]=d0074000.mmc
 	[aml-s905d-pc]=d0074000.mmc
+	[aml-s905d3-cc]=ffe07000.mmc
 	[roc-rk3328-cc]=ff520000.mmc
 	[roc-rk3399-pc]=fe320000.mmc
 	)
@@ -34,10 +38,12 @@ declare -A BOARD_EMMC_DT_NODE=(
 declare -A BOARD_EMMC_DRIVER=(
 	[all-h3-cc-h3]=sunxi-mmc
 	[all-h3-cc-h5]=sunxi-mmc
+	[aml-a311d-cc]=meson-axg-mmc
 	[aml-s805x-ac]=meson-gx-mmc
 	[aml-s905x-cc]=meson-gx-mmc
 	[aml-s905x-cc-v2]=meson-gx-mmc
 	[aml-s905d-pc]=meson-gx-mmc
+	[aml-s905d3-cc]=meson-axg-mmc
 	[roc-rk3328-cc]=dwmmc_rockchip
 	[roc-rk3399-pc]=dwmmc_rockchip
 	)
