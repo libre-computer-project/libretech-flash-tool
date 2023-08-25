@@ -31,4 +31,4 @@ url1=$(getURL "$2")
 url2=$(getURL "$3")
 echo "$url1"
 echo "$url2"
-diff -y --color=always -W $(tput cols) <(curl "$url1") <(curl "$url2") | less -r
+diff -y --color=always -W $(tput cols) <(curl "$url1") <(curl "$url2") | grep -v "phandle = "
