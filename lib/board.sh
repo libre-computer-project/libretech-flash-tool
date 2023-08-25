@@ -38,12 +38,12 @@ declare -A BOARD_EMMC_DT_NODE=(
 declare -A BOARD_EMMC_DRIVER=(
 	[all-h3-cc-h3]=sunxi-mmc
 	[all-h3-cc-h5]=sunxi-mmc
-	[aml-a311d-cc]=meson-axg-mmc
+	[aml-a311d-cc]=meson-gx-mmc
 	[aml-s805x-ac]=meson-gx-mmc
 	[aml-s905x-cc]=meson-gx-mmc
 	[aml-s905x-cc-v2]=meson-gx-mmc
 	[aml-s905d-pc]=meson-gx-mmc
-	[aml-s905d3-cc]=meson-axg-mmc
+	[aml-s905d3-cc]=meson-gx-mmc
 	[roc-rk3328-cc]=dwmmc_rockchip
 	[roc-rk3399-pc]=dwmmc_rockchip
 	)
@@ -53,7 +53,17 @@ BOARD_NAME_get(){
 		echo "This command is designed for Libre Computer products." >&2
 		exit 1 
 	fi
-	echo -n $(DMI_BOARD_NAME_get | tr "[:punct:]" " ") | tr -s ' ' '-' | tr '[:upper:]' '[:lower:]'
+	local board=$(echo -n $(DMI_BOARD_NAME_get | tr "[:punct:]" " ") | tr -s ' ' '-' | tr '[:upper:]' '[:lower:]')
+	
+	while [ -z "${BOARD_EMMC_DRIVER[$board]}" ]; do
+		local board_new="${board%-*}"
+		if [ -z "$board_new" ] || [ "$board_new" = "$board" ]; then
+			echo "$FUNCNAME: BOARD $1 is not supported" >&2
+			return 1
+		fi
+		local board="$board_new"
+	done
+	echo -n $board
 }
 
 BOARD_DRIVER_PATH=/sys/bus/platform/drivers
