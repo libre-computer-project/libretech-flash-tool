@@ -83,21 +83,21 @@ BOOTLOADER_flash(){
 	fi
 
 	local dev_path=/dev/$dev
-	
+
 	if ! BLOCK_DEV_isValid $dev $force; then
 		echo "$FUNCNAME: DEVICE $dev is not a valid target." >&2
 		return 1
 	fi
-	
+
 	if BLOCK_DEV_isMounted $dev; then
 		echo "$FUNCNAME: !!!WARNING!!! DEVICE $dev is mounted." >&2
 	fi
-	
+
 	if [ ! -w "$dev_path" ]; then
 		echo "$FUNCNAME: DEVICE $dev is not writable by current user $USER." >&2
 		return 1
 	fi
-	
+
 	if ! BOOTLOADER_getHeaders $board > $bl; then
 		if grep -io "HTTP/1.1\s404\sNot\sFound" $bl > /dev/null; then
 			echo "$FUNCNAME: BOARD $board bootloader could not be found." >&2
@@ -115,7 +115,7 @@ BOOTLOADER_flash(){
 		echo "$FUNCNAME: BOARD $board bootloader could not be downloaded." >&2
 		return 1
 	fi
-	
+
 	if [ $(stat -c %s $bl) -ne $bl_size ]; then
 		echo "$FUNCNAME: BOARD $board bootloader does not match expected size." >&2
 		return 1
@@ -124,7 +124,7 @@ BOOTLOADER_flash(){
 	if BLOCK_DEV_isMounted $dev; then
 		echo "$FUNCNAME: !!!WARNING!!! DEVICE $dev is mounted." >&2
 	fi
-	
+
 	local bl_dd_seek=""
 	local bl_offset=$(BOOTLOADER_getOffset $board)
 	if [ $bl_offset -eq 0 ]; then
@@ -134,7 +134,7 @@ BOOTLOADER_flash(){
 		local bl_dd_seek="seek=$bl_offset"
 	fi
 	local bl_flash_cmd="dd if=$bl of=$dev_path bs=$bl_block_size $bl_dd_seek status=progress"
-	
+
 	if [ "$force" -eq 0 ]; then
 		echo "$FUNCNAME: $bl_flash_cmd" >&2
 		echo "$FUNCNAME: run the above command to flash the target device?" >&2
@@ -153,7 +153,7 @@ BOOTLOADER_flash(){
 			esac
 		done
 	fi
-	
+
 	if $bl_flash_cmd; then
 		sync $dev_path
 		echo "$FUNCNAME: bootloader written to $dev successfully." >&2
@@ -168,6 +168,70 @@ BOOTLOADER_flash(){
 		fi
 	else
 		echo "$FUNCNAME: bootloader write to $dev failed!" >&2
+		return 1
+	fi
+}
+
+BOOTLOADER_wipe(){
+	local board=$1
+	local dev=$2
+	shift 2
+	local force=0
+	if TOOLKIT_isInCaseInsensitive "force" "$@"; then
+		local force=1
+	fi
+
+	local dev_path=/dev/$dev
+
+	if ! BLOCK_DEV_isValid $dev $force; then
+		echo "$FUNCNAME: DEVICE $dev is not a valid target." >&2
+		return 1
+	fi
+
+	if BLOCK_DEV_isMounted $dev; then
+		echo "$FUNCNAME: !!!WARNING!!! DEVICE $dev is mounted." >&2
+	fi
+
+	if [ ! -w "$dev_path" ]; then
+		echo "$FUNCNAME: DEVICE $dev is not writable by current user $USER." >&2
+		return 1
+	fi
+
+	if BLOCK_DEV_isMounted $dev; then
+		echo "$FUNCNAME: !!!WARNING!!! DEVICE $dev is mounted." >&2
+	fi
+
+	local bl_dd_seek=""
+	local bl_offset=$(BOOTLOADER_getOffset $board)
+	local bl_block_size=$BOOTLOADER_BLK_SIZE
+	local bl_dd_seek="seek=$bl_offset"
+	local bl_count="count=$((2048-bl_offset))"
+	local bl_flash_cmd="dd if=/dev/zero of=$dev_path bs=$bl_block_size $bl_dd_seek $bl_count status=progress"
+
+	if [ "$force" -eq 0 ]; then
+		echo "$FUNCNAME: $bl_flash_cmd" >&2
+		echo "$FUNCNAME: run the above command to flash the target device?" >&2
+		while true; do
+			read -s -n 1 -p "(y/n)" confirm
+			echo
+			case "${confirm,,}" in
+				y|yes)
+					echo "$bl_flash_cmd"
+					break
+					;;
+				n|no)
+					echo "$FUNCNAME: operation cancelled." >&2
+					return 1
+					;;
+			esac
+		done
+	fi
+
+	if $bl_flash_cmd; then
+		sync $dev_path
+		echo "$FUNCNAME: bootloader wiped from $dev successfully." >&2
+	else
+		echo "$FUNCNAME: bootloader wipe from $dev failed!" >&2
 		return 1
 	fi
 }

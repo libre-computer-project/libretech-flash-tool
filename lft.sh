@@ -111,6 +111,7 @@ main(){
 			echo "bl-offset|bootloader-offset BOARD" >&2
 			echo "bl-url|bootloader-url BOARD" >&2
 			echo "bl-flash|bootloader-flash BOARD DEVICE force|verify" >&2
+			echo "bl-wipe|bootloader-wipe DEVICE force|verify" >&2
 			return 1
 			;;
 		bl-offset|bootloader-offset)
@@ -144,6 +145,14 @@ main(){
 			
 			traps_pop
 			traps_stop
+			;;
+		bl-wipe|bootloader-wipe)
+			if [ -z "$board" ]; then
+				echo "$0 ${cmd^^} BOARD [DEVICE]" >&2
+				return 1
+			fi
+			
+			BOOTLOADER_wipe "$board" "$dev" "${param[@]}"
 			;;
 		dist-help|distro-help)
 			echo "COMMAND [DISTRO] [RELEASE] [VARIANT] [BOARD] [DEVICE] [PARAMETERS]" >&2
