@@ -3,23 +3,41 @@
 # Copyright (C) 2021 Da Xue <da@libre.computer>
 
 declare -A DISTRO_NAME=(
-	[ubuntu]="Ubuntu"
+	[debian]="Debian"
 	[raspbian]="Raspbian"
+	[ubuntu]="Ubuntu"
 	)
 
-declare -A DISTRO_UBUNTU_RELEASE=(
-	[22.04]="Jammy Jellyfish"
+declare -A DISTRO_DEBIAN_RELEASE=(
+	[11]="Bullseye"
+	[12]="Bookworm"
 	)
-declare -A DISTRO_UBUNTU_RELEASE_PREFIX=(
-	[22.04]="ubuntu-22.04.1-preinstalled-"
+
+declare -A DISTRO_DEBIAN_RELEASE_PREFIX=(
+	[11]="debian-11-"
+	[12]="debian-12-"
 	)
 
 declare -A DISTRO_RASPBIAN_RELEASE=(
+	[10]="Buster"
 	[11]="Bullseye"
+	[12]="Bookworm"
 	)
 
 declare -A DISTRO_RASPBIAN_RELEASE_PREFIX=(
-	[11]="2022-09-06-raspbian-bullseye-"
+	[10]="2023-05-03-raspbian-buster-"
+	[11]="2023-05-03-raspbian-bullseye-"
+	[12]="2023-10-10-raspbian-bookworm-"
+	)
+
+declare -A DISTRO_UBUNTU_RELEASE=(
+	[20.04]="Focal Fossa"
+	[22.04]="Jammy Jellyfish"
+	)
+
+declare -A DISTRO_UBUNTU_RELEASE_PREFIX=(
+	[20.04]="ubuntu-20.04.5-preinstalled-"
+	[22.04]="ubuntu-22.04.3-preinstalled-"
 	)
 
 DISTRO_URL="https://distro.libre.computer/ci"
@@ -119,9 +137,9 @@ DISTRO_list(){
 		return 1
 	fi
 	if [ "$distro" = "raspbian" -a "$variant" = "desktop" ]; then
-	local row=$(echo "$sha256sums" | grep "$release_prefix" | grep -v "\\-lite" | grep "+$board.img.[gx]z" | tac -s ' ')
+		local row=$(echo "$sha256sums" | grep "$release_prefix" | grep -v "\\-lite" | grep "+$board.img.[gx]z" | tac -s ' ')
 	else
-	local row=$(echo "$sha256sums" | grep "$release_prefix" | grep "$variant" | grep "+$board.img.[gx]z" | tac -s ' ')
+		local row=$(echo "$sha256sums" | grep "$release_prefix" | grep "$variant" | grep "+$board.img.[gx]z" | tac -s ' ')
 	fi
 	if [ $? -ne 0 ]; then
 		echo "$FUNCNAME: Internal error. Please submit a bug report!" >&2
