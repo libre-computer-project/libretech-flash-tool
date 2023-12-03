@@ -57,10 +57,18 @@ DISTRO_getSHA256SUMS(){
 DISTRO_get(){
 	local url=$1
 	local dist=$2
-	echo "$FUNCNAME: downloading $url to $dist."
+	echo "$FUNCNAME: downloading $url to $dist"
 	echo
-	wget -O - "$url" | xz -cd > $dist
+	#TODO: check download size vs mountpoint free space
+	#TODO: direct write to disk with checksum verify if low space
+	wget -O $dist "$url"
 	echo "$FUNCNAME: downloaded $url to $dist."
+	local checksum=$(sha256sum $dist | cut -f 1 -d ' ')
+	if [ "$checksum" != "$3" ]; then
+		echo "$FUNCNAME: checksum $checksum does not match expected $3"
+		return 1
+	fi
+	echo "$FUNCNAME: checksum verified."
 }
 
 DISTRO_list(){
@@ -185,12 +193,14 @@ DISTRO_flash(){
 		fi
 		return 1
 	fi
+
 	#local dist_size=$(grep -oi "Content-Length:\s\+[0-9]*" $dist | tail -n 1 | tr -s " " | cut -f 2 -d " ")
 	#if [ "$dist_size" -lt $((100*1024*1024)) ]; then
 	#	echo "$FUNCNAME: DISTRO size is unexpectedly small." >&2
 	#	return 1
 	#fi
-	if ! DISTRO_get "$url" $dist; then
+
+	if ! DISTRO_get "$url" $dist $checksum; then
 		echo "$FUNCNAME: DISTRO could not be downloaded." >&2
 		return 1
 	fi
@@ -205,7 +215,7 @@ DISTRO_flash(){
 		echo "$FUNCNAME: !!!WARNING!!! DEVICE $dev is mounted." >&2
 	fi
 
-	local dist_flash_cmd="dd if=$dist of=$dev_path bs=1M status=progress"
+	local dist_flash_cmd="xz -cd $dist | dd of=$dev_path bs=1M iflag=fullblock oflag=dsync status=progress"
 
 	if ! TOOLKIT_isInCaseInsensitive "force" "$@"; then
 		echo "$FUNCNAME: $dist_flash_cmd" >&2
@@ -226,12 +236,19 @@ DISTRO_flash(){
 		done
 	fi
 
-	if $dist_flash_cmd; then
+	local dist_flash_bytes=$(eval "$dist_flash_cmd 2>&1 | tee /dev/stderr | grep -oE '^[0-9]+ bytes' | tail -n 1 | cut -f 1 -d ' '")
+	if [ $? -eq 0 ]; then
 		[ "$dev" = "null" ] || sync $dev_path
 		echo "$FUNCNAME: distro written to $dev successfully." >&2
-		if TOOLKIT_isInCaseInsensitive "verify" "$@"; then
-			if cmp <(dd if=$dist bs=$dist_size count=1 2> /dev/null) \
-					<(dd if=$dev_path bs=$dist_size count=1 2> /dev/null) > /dev/null; then
+		if [ -z "$dist_flash_bytes" ]; then
+			echo "$FUNCNAME: unable to determine decompressed size." >&2
+			return 1
+		elif TOOLKIT_isInCaseInsensitive "verify" "$@"; then
+			if [ "$dev" = "null" ]; then
+				echo "$FUNCNAME: null device cannot be verified." >&2
+				return 1
+			fi
+			if cmp -n $dist_flash_bytes <(xz -cd $dist 2> /dev/null) $dev_path > /dev/null; then
 				echo "$FUNCNAME: distro written to $dev verified." >&2
 			else
 				echo "$FUNCNAME: distro written to $dev failed verification!" >&2
