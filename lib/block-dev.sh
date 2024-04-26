@@ -56,3 +56,13 @@ BLOCK_DEV_isMounted(){
 	done
 	return 1
 }
+
+BLOCK_DEV_getPartPrefix(){
+	if [ "${1/\/dev\/mmcblk/}" != "$1" ]; then
+		echo -n "p"
+	elif [ "${1/\/dev\/nvme/}" != "$1" ]; then
+		echo -n "p"
+	elif [ "${1/\/dev\/loop/}" != "$1" ]; then
+		echo -n "p"
+	fi
+}

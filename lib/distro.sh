@@ -43,8 +43,10 @@ declare -A DISTRO_UBUNTU_RELEASE_PREFIX=(
 	)
 
 DISTRO_URL="https://distro.libre.computer/ci"
-DISTRO_LEFT_URL="https://distro.libre.computer/left/left-uefi.img.xz"
 DISTRO_SHA256SUM=SHA256SUMS
+
+DISTRO_LEFT_URL="https://distro.libre.computer/left/left-uefi.img.xz"
+DISTRO_LEFT_SHA256SUM_URL="https://distro.libre.computer/left/SHA256SUMS"
 
 DISTRO_getURL(){
 	local distro=$1
@@ -67,11 +69,13 @@ DISTRO_get(){
 	wget -O $dist "$url"
 	echo "$FUNCNAME: downloaded $url to $dist."
 	local checksum=$(sha256sum $dist | cut -f 1 -d ' ')
-	if [ "$checksum" != "$3" ]; then
-		echo "$FUNCNAME: checksum $checksum does not match expected $3"
-		return 1
+	if [ ! -z "$3" ]; then
+		if [ "$checksum" != "$3" ]; then
+			echo "$FUNCNAME: checksum $checksum does not match expected $3"
+			return 1
+		fi
+		echo "$FUNCNAME: checksum verified."
 	fi
-	echo "$FUNCNAME: checksum verified."
 }
 
 DISTRO_list(){
@@ -223,20 +227,12 @@ DISTRO_flash(){
 	if ! TOOLKIT_isInCaseInsensitive "force" "$@"; then
 		echo "$FUNCNAME: $dist_flash_cmd" >&2
 		echo "$FUNCNAME: run the above command to flash the target device?" >&2
-		while true; do
-			read -s -n 1 -p "(y/n)" confirm
-			echo
-			case "${confirm,,}" in
-				y|yes)
-					echo "$dist_flash_cmd"
-					break
-					;;
-				n|no)
-					echo "$FUNCNAME: operation cancelled." >&2
-					return 1
-					;;
-			esac
-		done
+		if TOOLKIT_promptYesNo; then
+			echo "$dist_flash_cmd"
+		else
+			echo "$FUNCNAME: operation cancelled." >&2
+			return 1
+		fi
 	fi
 
 	local dist_flash_bytes=$(eval "$dist_flash_cmd 2>&1 | tee /dev/stderr | grep -oE '^[0-9]+ bytes' | tail -n 1 | cut -f 1 -d ' '")
@@ -253,10 +249,15 @@ DISTRO_flash(){
 			fi
 			if cmp -n $dist_flash_bytes <(xz -cd $dist 2> /dev/null) $dev_path > /dev/null; then
 				echo "$FUNCNAME: distro written to $dev verified." >&2
+				traps_popUntilLength 0
+				traps_stop
 			else
 				echo "$FUNCNAME: distro written to $dev failed verification!" >&2
 				return 1
 			fi
+		else
+			traps_popUntilLength 0
+			traps_stop
 		fi
 	else
 		echo "$FUNCNAME: distro write to $dev failed!" >&2
@@ -265,6 +266,7 @@ DISTRO_flash(){
 }
 
 DISTRO_flashLEFT(){
+	set -x
 	local url_checksum=($(DISTRO_list $@))
 	local url=${url_checksum[0]}
 	local checksum=${url_checksum[1]}
@@ -319,7 +321,8 @@ DISTRO_flashLEFT(){
 	#	return 1
 	#fi
 
-	if ! DISTRO_get "$url" $dist $checksum; then
+	#TODO left checksum
+	if ! DISTRO_get "$DISTRO_LEFT_URL" $left; then
 		echo "$FUNCNAME: DISTRO could not be downloaded." >&2
 		return 1
 	fi
@@ -334,32 +337,24 @@ DISTRO_flashLEFT(){
 		echo "$FUNCNAME: !!!WARNING!!! DEVICE $dev is mounted." >&2
 	fi
 
-	local left_flash_cmd="xz -cd $left | dd if="$left" of=$dev_path bs=1M iflag=fullblock oflag=dsync status=progress"
+	local left_flash_cmd="xz -cd $left | dd of=$dev_path bs=1M iflag=fullblock oflag=dsync status=progress"
 
 	if ! TOOLKIT_isInCaseInsensitive "force" "$@"; then
 		echo "$FUNCNAME: $left_flash_cmd" >&2
 		echo "$FUNCNAME: run the above command to flash the target device?" >&2
-		while true; do
-			read -s -n 1 -p "(y/n)" confirm
-			echo
-			case "${confirm,,}" in
-				y|yes)
-					echo "$left_flash_cmd"
-					break
-					;;
-				n|no)
-					echo "$FUNCNAME: operation cancelled." >&2
-					return 1
-					;;
-			esac
-		done
+		if TOOLKIT_promptYesNo; then
+			echo "$left_flash_cmd"
+		else
+			echo "$FUNCNAME: operation cancelled." >&2
+			return 1
+		fi
 	fi
 
 	local left_flash_bytes=$(eval "$left_flash_cmd 2>&1 | tee /dev/stderr | grep -oE '^[0-9]+ bytes' | tail -n 1 | cut -f 1 -d ' '")
 	if [ $? -eq 0 ]; then
 		[ "$dev" = "null" ] || sync $dev_path
 		echo "$FUNCNAME: LEFT written to $dev successfully." >&2
-		if [ -z "$dist_flash_bytes" ]; then
+		if [ -z "$left_flash_bytes" ]; then
 			echo "$FUNCNAME: unable to determine decompressed size." >&2
 			return 1
 		elif TOOLKIT_isInCaseInsensitive "verify" "$@"; then
@@ -376,7 +371,34 @@ DISTRO_flashLEFT(){
 		fi
 		# DOWNLOAD
 		partprobe "$dev_path"
-		#parted "$dev_path"
+		local left_end=$(parted -m "$dev_path" unit s print | tail -n 1 | cut -f 3 -d : | grep -oE [0-9]+)
+		local left_parted_cmd="parted $dev_path mkpart primary ext4 $((left_end+1))s 100%"
+		echo "$FUNCNAME: $left_parted_cmd" >&2
+		echo "$FUNCNAME: run the above command to partition the target device?" >&2
+		if TOOLKIT_promptYesNo; then
+			echo "$left_parted_cmd"
+			eval "$left_parted_cmd"
+		else
+			echo "$FUNCNAME: operation cancelled." >&2
+			return 1
+		fi
+		partprobe "$dev_path"
+		local left_part_num=$(parted -m "$dev_path" unit s print | tail -n 1 | cut -f 1 -d :)
+		local left_part_path="${dev_path}$(BLOCK_DEV_getPartPrefix $dev_path)${left_part_num}"
+		mkfs.ext4 -F "$left_part_path"
+		local left_part_dir=$(mktemp -d)
+		traps_push rmdir "$left_part_dir"
+		mount "$left_part_path" "$left_part_dir"
+		traps_push umount "$left_part_dir"
+		local left_distro_filename="${url##*/}"
+		if ! DISTRO_get "$url" "$left_part_dir/$left_distro_filename" $checksum; then
+			echo "$FUNCNAME: DISTRO could not be downloaded." >&2
+			return 1
+		fi
+		echo "IMAGE_FILE=$left_distro_filename" > "$left_part_dir/flash.ini"
+		echo "$FUNCNAME: DISTRO written to $dev$(BLOCK_DEV_getPartPrefix $dev_path)$left_part_num successfully." >&2
+		traps_popUntilLength 0
+		traps_stop
 	else
 		echo "$FUNCNAME: LEFT write to $dev failed!" >&2
 		return 1

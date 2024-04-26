@@ -157,7 +157,7 @@ main(){
 		dist-help|distro-help)
 			echo "COMMAND [DISTRO] [RELEASE] [VARIANT] [BOARD] [DEVICE] [PARAMETERS]" >&2
 			echo "dist-list|distro-list [DISTRO] [RELEASE] [VARIANT] [BOARD]" >&2
-			echo "dist-flash|distro-flash [DISTRO] [RELEASE] [VARIANT] [BOARD] [DEVICE] [PARAMETERS]" >&2
+			echo "dist-flash|distro-flash|distro-flash-left [DISTRO] [RELEASE] [VARIANT] [BOARD] [DEVICE] [PARAMETERS]" >&2
 			return 1
 			;;
 		dist-list|distro-list)
@@ -165,6 +165,9 @@ main(){
 			;;
 		dist-flash|distro-flash)
 			DISTRO_flash $distro $release $variant $board $dev "${param[@]}"
+			;;
+		dist-flash-left|distro-flash-left)
+			DISTRO_flashLEFT $distro $release $variant $board $dev "${param[@]}"
 			;;
 		*)
 			echo "$FUNCNAME: COMMAND $cmd is not valid." >&2
