@@ -33,14 +33,17 @@ declare -A DISTRO_RASPBIAN_RELEASE_PREFIX=(
 declare -A DISTRO_UBUNTU_RELEASE=(
 	[20.04]="Focal Fossa"
 	[22.04]="Jammy Jellyfish"
+	[24.04]="Noble Numbat"
 	)
 
 declare -A DISTRO_UBUNTU_RELEASE_PREFIX=(
 	[20.04]="ubuntu-20.04.5-preinstalled-"
 	[22.04]="ubuntu-22.04.3-preinstalled-"
+	[24.04]="ubuntu-24.04-preinstalled-"
 	)
 
 DISTRO_URL="https://distro.libre.computer/ci"
+DISTRO_LEFT_URL="https://distro.libre.computer/left/left-uefi.img.xz"
 DISTRO_SHA256SUM=SHA256SUMS
 
 DISTRO_getURL(){
@@ -252,10 +255,130 @@ DISTRO_flash(){
 				echo "$FUNCNAME: distro written to $dev verified." >&2
 			else
 				echo "$FUNCNAME: distro written to $dev failed verification!" >&2
+				return 1
 			fi
 		fi
 	else
 		echo "$FUNCNAME: distro write to $dev failed!" >&2
+		return 1
+	fi
+}
+
+DISTRO_flashLEFT(){
+	local url_checksum=($(DISTRO_list $@))
+	local url=${url_checksum[0]}
+	local checksum=${url_checksum[1]}
+	shift 4
+
+	traps_start
+	local left=$(mktemp)
+	traps_push rm $left
+
+	local dist=$(mktemp)
+	traps_push rm $dist
+
+	local dev=$1
+	shift
+
+	local dev_path=/dev/$dev
+
+	if ! BLOCK_DEV_isValid $dev; then
+		echo "$FUNCNAME: DEVICE $dev is not a valid target." >&2
+		return 1
+	fi
+
+	if BLOCK_DEV_isMounted $dev; then
+		echo "$FUNCNAME: !!!WARNING!!! DEVICE $dev is mounted." >&2
+	fi
+
+	if [ ! -w "$dev_path" ]; then
+		echo "$FUNCNAME: DEVICE $dev is not writable by current user $USER." >&2
+		return 1
+	fi
+
+	if ! WGET_getHeaders "$DISTRO_LEFT_URL" > $left; then
+		if grep -io "HTTP/1.1\s404\sNot\sFound" $dist > /dev/null; then
+			echo "$FUNCNAME: LEFT could not be found at $url." >&2
+		else
+			echo "$FUNCNAME: LEFT server could not be reached." >&2
+		fi
+	fi
+
+	if ! WGET_getHeaders "$url" > $dist; then
+		if grep -io "HTTP/1.1\s404\sNot\sFound" $dist > /dev/null; then
+			echo "$FUNCNAME: DISTRO could not be found at $url." >&2
+		else
+			echo "$FUNCNAME: DISTRO server could not be reached." >&2
+		fi
+		return 1
+	fi
+
+	#local dist_size=$(grep -oi "Content-Length:\s\+[0-9]*" $dist | tail -n 1 | tr -s " " | cut -f 2 -d " ")
+	#if [ "$dist_size" -lt $((100*1024*1024)) ]; then
+	#	echo "$FUNCNAME: DISTRO size is unexpectedly small." >&2
+	#	return 1
+	#fi
+
+	if ! DISTRO_get "$url" $dist $checksum; then
+		echo "$FUNCNAME: DISTRO could not be downloaded." >&2
+		return 1
+	fi
+
+	#if [ $(stat -c %s $dist) -ne $dist_size ]; then
+	#	echo "$FUNCNAME: DISTRO does not match expected size." >&2
+	#	return 1
+	#fi
+	local dist_size=$(stat -c %s $dist)
+
+	if BLOCK_DEV_isMounted $dev; then
+		echo "$FUNCNAME: !!!WARNING!!! DEVICE $dev is mounted." >&2
+	fi
+
+	local left_flash_cmd="xz -cd $left | dd if="$left" of=$dev_path bs=1M iflag=fullblock oflag=dsync status=progress"
+
+	if ! TOOLKIT_isInCaseInsensitive "force" "$@"; then
+		echo "$FUNCNAME: $left_flash_cmd" >&2
+		echo "$FUNCNAME: run the above command to flash the target device?" >&2
+		while true; do
+			read -s -n 1 -p "(y/n)" confirm
+			echo
+			case "${confirm,,}" in
+				y|yes)
+					echo "$left_flash_cmd"
+					break
+					;;
+				n|no)
+					echo "$FUNCNAME: operation cancelled." >&2
+					return 1
+					;;
+			esac
+		done
+	fi
+
+	local left_flash_bytes=$(eval "$left_flash_cmd 2>&1 | tee /dev/stderr | grep -oE '^[0-9]+ bytes' | tail -n 1 | cut -f 1 -d ' '")
+	if [ $? -eq 0 ]; then
+		[ "$dev" = "null" ] || sync $dev_path
+		echo "$FUNCNAME: LEFT written to $dev successfully." >&2
+		if [ -z "$dist_flash_bytes" ]; then
+			echo "$FUNCNAME: unable to determine decompressed size." >&2
+			return 1
+		elif TOOLKIT_isInCaseInsensitive "verify" "$@"; then
+			if [ "$dev" = "null" ]; then
+				echo "$FUNCNAME: null device cannot be verified." >&2
+				return 1
+			fi
+			if cmp -n $left_flash_bytes <(xz -cd $left 2> /dev/null) $dev_path > /dev/null; then
+				echo "$FUNCNAME: LEFT written to $dev verified." >&2
+			else
+				echo "$FUNCNAME: LEFT written to $dev failed verification!" >&2
+				return 1
+			fi
+		fi
+		# DOWNLOAD
+		partprobe "$dev_path"
+		#parted "$dev_path"
+	else
+		echo "$FUNCNAME: LEFT write to $dev failed!" >&2
 		return 1
 	fi
 }
