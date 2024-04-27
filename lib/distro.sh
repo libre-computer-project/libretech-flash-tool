@@ -181,7 +181,8 @@ DISTRO_flash(){
 	fi
 
 	if BLOCK_DEV_isMounted $dev; then
-		echo "$FUNCNAME: !!!WARNING!!! DEVICE $dev is mounted." >&2
+		echo "$FUNCNAME: !!!ERROR!!! DEVICE $dev is mounted." >&2
+		return 1
 	fi
 
 	if [ ! -w "$dev_path" ]; then
@@ -216,7 +217,8 @@ DISTRO_flash(){
 	#local dist_size=$(stat -c %s $dist)
 
 	if BLOCK_DEV_isMounted $dev; then
-		echo "$FUNCNAME: !!!WARNING!!! DEVICE $dev is mounted." >&2
+		echo "$FUNCNAME: !!!ERROR!!! DEVICE $dev is mounted." >&2
+		return 1
 	fi
 
 	local dist_flash_cmd="xz -cd $dist | dd of=$dev_path bs=1M iflag=fullblock oflag=dsync status=progress"
@@ -286,7 +288,8 @@ DISTRO_LEFT_flash(){
 	fi
 
 	if BLOCK_DEV_isMounted $dev; then
-		echo "$FUNCNAME: !!!WARNING!!! DEVICE $dev is mounted." >&2
+		echo "$FUNCNAME: !!!ERROR!!! DEVICE $dev is mounted." >&2
+		return 1
 	fi
 
 	if [ ! -w "$dev_path" ]; then
@@ -330,7 +333,8 @@ DISTRO_LEFT_flash(){
 	#local dist_size=$(stat -c %s $dist)
 
 	if BLOCK_DEV_isMounted $dev; then
-		echo "$FUNCNAME: !!!WARNING!!! DEVICE $dev is mounted." >&2
+		echo "$FUNCNAME: !!!ERROR!!! DEVICE $dev is mounted." >&2
+		return 1
 	fi
 
 	local left_flash_cmd="xz -cd $left | dd of=$dev_path bs=1M iflag=fullblock oflag=dsync status=progress"

@@ -80,7 +80,7 @@ main(){
 		fi
 		local image=""
 		if [ ! -z "$1" ]; then
-			local image=${1,,}
+			local image="$1"
 			shift
 		fi
 	fi

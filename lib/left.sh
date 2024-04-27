@@ -25,7 +25,8 @@ LEFT_flash(){
 	fi
 
 	if BLOCK_DEV_isMounted $dev; then
-		echo "$FUNCNAME: !!!WARNING!!! DEVICE $dev is mounted." >&2
+		echo "$FUNCNAME: !!!ERROR!!! DEVICE $dev is mounted." >&2
+		return 1
 	fi
 
 	if [ ! -w "$dev_path" ]; then
@@ -65,7 +66,8 @@ LEFT_flash(){
 	#local dist_size=$(stat -c %s $dist)
 
 	if BLOCK_DEV_isMounted $dev; then
-		echo "$FUNCNAME: !!!WARNING!!! DEVICE $dev is mounted." >&2
+		echo "$FUNCNAME: !!!ERROR!!! DEVICE $dev is mounted." >&2
+		return 1
 	fi
 
 	local left_flash_cmd="xz -cd $left | dd of=$dev_path bs=1M iflag=fullblock oflag=dsync status=progress"
@@ -123,8 +125,11 @@ LEFT_flash(){
 			mount "$left_part_path" "$left_part_dir"
 			traps_push umount "$left_part_dir"
 			local left_distro_filename="${image##*/}"
-			cp "$image" "$left_part_dir/$left_distro_filename"
+			dd if="$image" of="$left_part_dir/$left_distro_filename" bs=1M oflag=sync status=progress
 			echo "IMAGE_FILE=$left_distro_filename" > "$left_part_dir/flash.ini"
+			if [ ! -z "$LEFT_IMAGE_EXPAND" ]; then
+				echo "IMAGE_EXPAND=1" >> "$left_part_dir/flash.ini"
+			fi
 			echo "$FUNCNAME: IMAGE written to $dev$(BLOCK_DEV_getPartPrefix $dev_path)$left_part_num successfully." >&2
 		else
 			echo "$FUNCNAME: LEFT setup on $dev$(BLOCK_DEV_getPartPrefix $dev_path)$left_part_num successfully." >&2
