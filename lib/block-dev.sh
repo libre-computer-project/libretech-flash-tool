@@ -66,3 +66,8 @@ BLOCK_DEV_getPartPrefix(){
 		echo -n "p"
 	fi
 }
+
+BLOCK_DEV_mkfs(){
+	local type="$1"
+	local target="$2"
+}

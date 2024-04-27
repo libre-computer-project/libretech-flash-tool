@@ -45,9 +45,6 @@ declare -A DISTRO_UBUNTU_RELEASE_PREFIX=(
 DISTRO_URL="https://distro.libre.computer/ci"
 DISTRO_SHA256SUM=SHA256SUMS
 
-DISTRO_LEFT_URL="https://distro.libre.computer/left/left-uefi.img.xz"
-DISTRO_LEFT_SHA256SUM_URL="https://distro.libre.computer/left/SHA256SUMS"
-
 DISTRO_getURL(){
 	local distro=$1
 	local release=$2
@@ -216,7 +213,7 @@ DISTRO_flash(){
 	#	echo "$FUNCNAME: DISTRO does not match expected size." >&2
 	#	return 1
 	#fi
-	local dist_size=$(stat -c %s $dist)
+	#local dist_size=$(stat -c %s $dist)
 
 	if BLOCK_DEV_isMounted $dev; then
 		echo "$FUNCNAME: !!!WARNING!!! DEVICE $dev is mounted." >&2
@@ -265,8 +262,7 @@ DISTRO_flash(){
 	fi
 }
 
-DISTRO_flashLEFT(){
-	set -x
+DISTRO_LEFT_flash(){
 	local url_checksum=($(DISTRO_list $@))
 	local url=${url_checksum[0]}
 	local checksum=${url_checksum[1]}
@@ -298,7 +294,7 @@ DISTRO_flashLEFT(){
 		return 1
 	fi
 
-	if ! WGET_getHeaders "$DISTRO_LEFT_URL" > $left; then
+	if ! WGET_getHeaders "$LEFT_URL" > $left; then
 		if grep -io "HTTP/1.1\s404\sNot\sFound" $dist > /dev/null; then
 			echo "$FUNCNAME: LEFT could not be found at $url." >&2
 		else
@@ -322,7 +318,7 @@ DISTRO_flashLEFT(){
 	#fi
 
 	#TODO left checksum
-	if ! DISTRO_get "$DISTRO_LEFT_URL" $left; then
+	if ! DISTRO_get "$LEFT_URL" $left; then
 		echo "$FUNCNAME: DISTRO could not be downloaded." >&2
 		return 1
 	fi
@@ -331,7 +327,7 @@ DISTRO_flashLEFT(){
 	#	echo "$FUNCNAME: DISTRO does not match expected size." >&2
 	#	return 1
 	#fi
-	local dist_size=$(stat -c %s $dist)
+	#local dist_size=$(stat -c %s $dist)
 
 	if BLOCK_DEV_isMounted $dev; then
 		echo "$FUNCNAME: !!!WARNING!!! DEVICE $dev is mounted." >&2

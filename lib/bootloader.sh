@@ -70,9 +70,13 @@ BOOTLOADER_get(){
 
 BOOTLOADER_flash(){
 	local board=$1
-	local bl=$2
-	local dev=$3
-	shift 3
+	local dev=$2
+	shift 2
+
+	traps_start
+	local bl=$(mktemp)
+	traps_push rm "$bl"
+
 	local force=0
 	if TOOLKIT_isInCaseInsensitive "force" "$@"; then
 		local force=1
@@ -138,20 +142,12 @@ BOOTLOADER_flash(){
 	if [ "$force" -eq 0 ]; then
 		echo "$FUNCNAME: $bl_flash_cmd" >&2
 		echo "$FUNCNAME: run the above command to flash the target device?" >&2
-		while true; do
-			read -s -n 1 -p "(y/n)" confirm
-			echo
-			case "${confirm,,}" in
-				y|yes)
-					echo "$bl_flash_cmd"
-					break
-					;;
-				n|no)
-					echo "$FUNCNAME: operation cancelled." >&2
-					return 1
-					;;
-			esac
-		done
+		if TOOLKIT_promptYesNo; then
+			echo "$bl_flash_cmd"
+		else
+			echo "$FUNCNAME: operation cancelled." >&2
+			return 1
+		fi
 	fi
 
 	if $bl_flash_cmd; then
@@ -166,6 +162,8 @@ BOOTLOADER_flash(){
 				echo "$FUNCNAME: bootloader written to $dev failed verification!" >&2
 			fi
 		fi
+		traps_pop
+		traps_stop
 	else
 		echo "$FUNCNAME: bootloader write to $dev failed!" >&2
 		return 1

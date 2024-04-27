@@ -54,7 +54,7 @@ BOARD_NAME_get(){
 		exit 1 
 	fi
 	local board=$(echo -n $(DMI_BOARD_NAME_get | tr "[:punct:]" " ") | tr -s ' ' '-' | tr '[:upper:]' '[:lower:]')
-	
+
 	while [ -z "${BOARD_EMMC_DRIVER[$board]}" ]; do
 		local board_new="${board%-*}"
 		if [ -z "$board_new" ] || [ "$board_new" = "$board" ]; then

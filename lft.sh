@@ -44,6 +44,7 @@ main(){
 		fi
 	elif [ "${cmd%%-*}" = "dist" -o "${cmd%%-*}" = "distro" ]; then
 		. lib/distro.sh
+		. lib/left.sh
 		local distro
 		if [ ! -z "$1" ]; then
 			local distro=${1,,}
@@ -69,6 +70,19 @@ main(){
 			local dev=$1
 			shift
 		fi
+	elif [ "${cmd%%-*}" = "left" ]; then
+		. lib/distro.sh
+		. lib/left.sh
+		local dev="null"
+		if [ ! -z "$1" ]; then
+			local dev=$1
+			shift
+		fi
+		local image=""
+		if [ ! -z "$1" ]; then
+			local image=${1,,}
+			shift
+		fi
 	fi
 	local param
 	if [ ! -z "$1" ]; then
@@ -76,7 +90,7 @@ main(){
 	fi
 	case ${cmd,,} in
 		help)
-			echo "COMMAND device-list board-help bootloader-help distro-help" >&2
+			echo "COMMAND device-list board-help bootloader-help distro-help left-help" >&2
 			return 1
 			;;
 		dev-list|device-list)
@@ -137,21 +151,13 @@ main(){
 				echo "$0 ${cmd^^} BOARD [DEVICE]" >&2
 				return 1
 			fi
-			traps_start
-			local bl=$(mktemp)
-			traps_push rm $bl
-			
-			BOOTLOADER_flash "$board" "$bl" "$dev" "${param[@]}"
-			
-			traps_pop
-			traps_stop
+			BOOTLOADER_flash "$board" "$dev" "${param[@]}"
 			;;
 		bl-wipe|bootloader-wipe)
 			if [ -z "$board" ]; then
 				echo "$0 ${cmd^^} BOARD [DEVICE]" >&2
 				return 1
 			fi
-			
 			BOOTLOADER_wipe "$board" "$dev" "${param[@]}"
 			;;
 		dist-help|distro-help)
@@ -161,13 +167,21 @@ main(){
 			return 1
 			;;
 		dist-list|distro-list)
-			DISTRO_list $distro $release $variant $board
+			DISTRO_list "$distro" "$release" "$variant" "$board"
 			;;
 		dist-flash|distro-flash)
-			DISTRO_flash $distro $release $variant $board $dev "${param[@]}"
+			DISTRO_flash "$distro" "$release" "$variant" "$board" "$dev" "${param[@]}"
 			;;
 		dist-flash-left|distro-flash-left)
-			DISTRO_flashLEFT $distro $release $variant $board $dev "${param[@]}"
+			DISTRO_LEFT_flash "$distro" "$release" "$variant" "$board" "$dev" "${param[@]}"
+			;;
+		left-help)
+			echo "COMMAND [DEVICE] [IMAGE] [PARAMETERS]" >&2
+			echo "left-flash [DEVICE] [IMAGE] [PARAMETERS]" >&2
+			return 1
+			;;
+		left-flash)
+			LEFT_flash "$dev" "$image" "${param[@]}"
 			;;
 		*)
 			echo "$FUNCNAME: COMMAND $cmd is not valid." >&2
