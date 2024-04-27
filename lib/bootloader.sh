@@ -1,5 +1,5 @@
 #!/bin/bash
-# SPDX-License-Identifier: CC-BY-NC-4.0
+# SPDX-License-Identifier: GPL-2.0
 # Copyright (C) 2021 Da Xue <da@libre.computer>
 
 declare -A BOOTLOADER_OFFSET=(
