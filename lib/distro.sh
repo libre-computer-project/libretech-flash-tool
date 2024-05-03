@@ -221,11 +221,12 @@ DISTRO_flash(){
 		return 1
 	fi
 
-	local dist_flash_cmd="xz -cd $dist | dd of=$dev_path bs=1M iflag=fullblock oflag=dsync status=progress"
+	local dist_flash_cmd="xz -cd $dist | dd of=$dev_path bs=1M iflag=fullblock oflag=dsync conv=notrunc status=progress"
 
 	if ! TOOLKIT_isInCaseInsensitive "force" "$@"; then
-		echo "$FUNCNAME: $dist_flash_cmd" >&2
-		echo "$FUNCNAME: run the above command to flash the target device?" >&2
+		echo "$FUNCNAME: COMMAND: $dist_flash_cmd" >&2
+		echo "$FUNCNAME: DEVICE $dev: $(BLOCK_DEV_getInfo $dev)" >&2
+		echo "$FUNCNAME: Run the COMMAND above to flash the target DEVICE?" >&2
 		if TOOLKIT_promptYesNo; then
 			echo "$dist_flash_cmd"
 		else
@@ -337,7 +338,7 @@ DISTRO_LEFT_flash(){
 		return 1
 	fi
 
-	local left_flash_cmd="xz -cd $left | dd of=$dev_path bs=1M iflag=fullblock oflag=dsync status=progress"
+	local left_flash_cmd="xz -cd $left | dd of=$dev_path bs=1M iflag=fullblock oflag=dsync conv=notrunc status=progress"
 
 	if ! TOOLKIT_isInCaseInsensitive "force" "$@"; then
 		echo "$FUNCNAME: $left_flash_cmd" >&2

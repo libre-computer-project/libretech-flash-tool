@@ -70,7 +70,7 @@ LEFT_flash(){
 		return 1
 	fi
 
-	local left_flash_cmd="xz -cd $left | dd of=$dev_path bs=1M iflag=fullblock oflag=dsync status=progress"
+	local left_flash_cmd="xz -cd $left | dd of=$dev_path bs=1M iflag=fullblock oflag=dsync conv=notrunc status=progress"
 
 	if ! TOOLKIT_isInCaseInsensitive "force" "$@"; then
 		echo "$FUNCNAME: $left_flash_cmd" >&2
