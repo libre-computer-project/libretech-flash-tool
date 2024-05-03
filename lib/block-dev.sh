@@ -57,6 +57,11 @@ BLOCK_DEV_isMounted(){
 	return 1
 }
 
+BLOCK_DEV_getInfo(){
+	local dev=$1
+	lsblk -dnyo TRAN,SIZE,VENDOR,MODEL,SERIAL /dev/$dev
+}
+
 BLOCK_DEV_getPartPrefix(){
 	if [ "${1/\/dev\/mmcblk/}" != "$1" ]; then
 		echo -n "p"

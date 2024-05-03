@@ -137,11 +137,12 @@ BOOTLOADER_flash(){
 		local bl_block_size=$BOOTLOADER_BLK_SIZE
 		local bl_dd_seek="seek=$bl_offset"
 	fi
-	local bl_flash_cmd="dd if=$bl of=$dev_path bs=$bl_block_size $bl_dd_seek status=progress"
+	local bl_flash_cmd="dd if=$bl of=$dev_path bs=$bl_block_size $bl_dd_seek conv=notrunc status=progress"
 
 	if [ "$force" -eq 0 ]; then
-		echo "$FUNCNAME: $bl_flash_cmd" >&2
-		echo "$FUNCNAME: run the above command to flash the target device?" >&2
+		echo "$FUNCNAME: COMMAND: $bl_flash_cmd" >&2
+		echo "$FUNCNAME: DEVICE $dev: $(BLOCK_DEV_getInfo $dev)" >&2
+		echo "$FUNCNAME: Run the COMMAND above to flash the target DEVICE?" >&2
 		if TOOLKIT_promptYesNo; then
 			echo "$bl_flash_cmd"
 		else
@@ -204,7 +205,7 @@ BOOTLOADER_wipe(){
 	local bl_block_size=$BOOTLOADER_BLK_SIZE
 	local bl_dd_seek="seek=$bl_offset"
 	local bl_count="count=$((2048-bl_offset))"
-	local bl_flash_cmd="dd if=/dev/zero of=$dev_path bs=$bl_block_size $bl_dd_seek $bl_count status=progress"
+	local bl_flash_cmd="dd if=/dev/zero of=$dev_path bs=$bl_block_size $bl_dd_seek $bl_count conv=notrunc status=progress"
 
 	if [ "$force" -eq 0 ]; then
 		echo "$FUNCNAME: $bl_flash_cmd" >&2
