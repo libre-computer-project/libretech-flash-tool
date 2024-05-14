@@ -1,4 +1,8 @@
 #!/bin/bash
+if [ -z "$1" ] || [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+	echo "$0 dt|config board[/master|linux-rolling-lts|linux-rolling-stable]" >&2
+	exit 1
+fi
 
 case "$1" in
 	"dt")
@@ -14,10 +18,6 @@ case "$1" in
 esac
 
 getURL(){
-	#board
-	#board/v2023.04
-	#board/linux-5.10.y
-	#board/master
 	board="${1%%/*}"
 	if [ "$board" != "$1" ]; then
 		release="${1#*/}"
