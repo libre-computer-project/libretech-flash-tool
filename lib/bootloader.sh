@@ -5,12 +5,15 @@
 declare -A BOOTLOADER_OFFSET=(
 	[all-h3-cc-h3]=16
 	[all-h3-cc-h5]=16
+	[aml-a311d-cc-v01]=1
 	[aml-a311d-cc]=1
 	[aml-s805x-ac]=1
 	[aml-s905x-cc]=1
 	[aml-s905x-cc-v2]=1
 	[aml-s905d-pc]=1
+	[aml-s905d3-cc-v01]=1
 	[aml-s905d3-cc]=1
+	[roc-rk3328-cc-v2]=64
 	[roc-rk3328-cc]=64
 	[roc-rk3399-pc]=64
 	)

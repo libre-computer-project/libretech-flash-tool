@@ -5,13 +5,16 @@
 declare -a BOARD_LIST=(
 	"all-h3-cc-h3"
 	"all-h3-cc-h5"
+	"aml-a311d-cc-v01"
 	"aml-a311d-cc"
 	"aml-s805x-ac"
 	"aml-s905x-cc"
 	"aml-s905x-cc-v2"
 	"aml-s905d-pc"
+	"aml-s905d3-cc-v01"
 	"aml-s905d3-cc"
 	"roc-rk3328-cc"
+	"roc-rk3328-cc-v2"
 	"roc-rk3399-pc"
 	)
 
@@ -25,33 +28,39 @@ BOARD_list(){
 declare -A BOARD_EMMC_DT_NODE=(
 	[all-h3-cc-h3]=1c11000.mmc
 	[all-h3-cc-h5]=1c11000.mmc
+	[aml-a311d-cc-v01]=ffe07000.mmc
 	[aml-a311d-cc]=ffe07000.mmc
 	[aml-s805x-ac]=d0074000.mmc
 	[aml-s905x-cc]=d0074000.mmc
 	[aml-s905x-cc-v2]=d0074000.mmc
 	[aml-s905d-pc]=d0074000.mmc
+	[aml-s905d3-cc-v01]=ffe07000.mmc
 	[aml-s905d3-cc]=ffe07000.mmc
 	[roc-rk3328-cc]=ff520000.mmc
+	[roc-rk3328-cc-v2]=ff520000.mmc
 	[roc-rk3399-pc]=fe320000.mmc
 	)
 
 declare -A BOARD_EMMC_DRIVER=(
 	[all-h3-cc-h3]=sunxi-mmc
 	[all-h3-cc-h5]=sunxi-mmc
+	[aml-a311d-cc-v01]=meson-gx-mmc
 	[aml-a311d-cc]=meson-gx-mmc
 	[aml-s805x-ac]=meson-gx-mmc
 	[aml-s905x-cc]=meson-gx-mmc
 	[aml-s905x-cc-v2]=meson-gx-mmc
 	[aml-s905d-pc]=meson-gx-mmc
+	[aml-s905d3-cc-v01]=meson-gx-mmc
 	[aml-s905d3-cc]=meson-gx-mmc
 	[roc-rk3328-cc]=dwmmc_rockchip
+	[roc-rk3328-cc-v2]=dwmmc_rockchip
 	[roc-rk3399-pc]=dwmmc_rockchip
 	)
 
 BOARD_NAME_get(){
 	if [ "$(DMI_BOARD_VENDOR_get)" != "libre-computer" ]; then
 		echo "This command is designed for Libre Computer products." >&2
-		exit 1 
+		exit 2
 	fi
 	local board=$(echo -n $(DMI_BOARD_NAME_get | tr "[:punct:]" " ") | tr -s ' ' '-' | tr '[:upper:]' '[:lower:]')
 
@@ -70,11 +79,17 @@ BOARD_DRIVER_PATH=/sys/bus/platform/drivers
 
 BOARD_EMMC_isBound(){
 	local board=${1:-$(BOARD_NAME_get)}
+	if [ -z "$board" ]; then
+		return 2
+	fi
 	[ -e "$BOARD_DRIVER_PATH/${BOARD_EMMC_DRIVER[$board]}/${BOARD_EMMC_DT_NODE[$board]}" ]
 }
 
 BOARD_EMMC_bind(){
 	local board=${1:-$(BOARD_NAME_get)}
+	if [ -z "$board" ]; then
+		return 2
+	fi
 	if BOARD_EMMC_isBound $board; then
 		echo "$FUNCNAME: eMMC already bound." >&2
 		return 1
@@ -89,6 +104,9 @@ BOARD_EMMC_bind(){
 
 BOARD_EMMC_unbind(){
 	local board=$(BOARD_NAME_get)
+	if [ -z "$board" ]; then
+		return 2
+	fi
 	if ! BOARD_EMMC_isBound $board; then
 		echo "$FUNCNAME: eMMC not bound." >&2
 		return 1
@@ -103,6 +121,9 @@ BOARD_EMMC_unbind(){
 
 BOARD_EMMC_rebind(){
 	local board=$(BOARD_NAME_get)
+	if [ -z "$board" ]; then
+		return 2
+	fi
 	if BOARD_EMMC_isBound $board; then
 		BOARD_EMMC_unbind $board
 	fi
