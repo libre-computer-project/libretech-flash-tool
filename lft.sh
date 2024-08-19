@@ -106,6 +106,7 @@ main(){
 			echo "b-emmc|board-emmc bind|unbind|rebind" >&2
 			echo "b-emmc|board-emmc show" >&2
 			echo "b-emmc|board-emmc test read|write" >&2
+			echo "b-bootrom|board-bootrom usb-drive|fastboot|sdp BOARD [DEVICE] [INDEX]" >&2
 			;;
 		b-list|board-list)
 			BOARD_list
@@ -117,6 +118,17 @@ main(){
 					;;
 				"bind"|"unbind"|"rebind"|"test")
 					BOARD_EMMC_${action} "${param[@]}"
+					;;
+			esac
+			;;
+		b-bootrom|board-bootrom)
+			. lib/bootloader.sh
+			case "${action,,}" in
+				"usb-drive")
+					BOARD_BOOTROM_USB_drive "${param[@]}"
+					;;
+				*)
+					echo "BOARD BootROM: ${action,,} not supported or implemented."
 					;;
 			esac
 			;;

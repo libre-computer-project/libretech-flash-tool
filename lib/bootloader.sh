@@ -18,7 +18,7 @@ declare -A BOOTLOADER_OFFSET=(
 	[roc-rk3399-pc]=64
 	)
 
-BOOTLOADER_URL="https://boot.libre.computer/ci/"
+BOOTLOADER_URL="https://boot.libre.computer/ci"
 BOOTLOADER_BLK_SIZE=512
 BOOTLOADER_isValid(){
 	local board=$1
@@ -55,7 +55,7 @@ BOOTLOADER_getOffset(){
 }
 
 BOOTLOADER_getURL(){
-	echo -n "${BOOTLOADER_URL}${1}"
+	echo -n "${BOOTLOADER_URL}/${1}"
 }
 
 BOOTLOADER_getHeaders(){
