@@ -154,13 +154,13 @@ BOARD_BOOTROM_USB_drive(){
 		roc-rk3328-*)
 			local usb_device=2207:320c
 			local soc_vendor=rockchip
-			local soc_tool="bin/rockusb download-boot"
+			local soc_tool="bin/rockusb-$(uname -m) download-boot"
 			local soc_tool_canfail=1
 			;;
 		roc-rk3399-*)
 			local soc_vendor=rockchip
 			local usb_device=2207:330c
-			local soc_tool="bin/rockusb download-boot"
+			local soc_tool="bin/rockusb-$(uname -m) download-boot"
 			local soc_tool_canfail=0
 			;;
 		*)
