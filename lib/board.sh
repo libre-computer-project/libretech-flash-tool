@@ -155,11 +155,13 @@ BOARD_BOOTROM_USB_drive(){
 			local usb_device=2207:320c
 			local soc_vendor=rockchip
 			local soc_tool="bin/rockusb download-boot"
+			local soc_tool_canfail=1
 			;;
 		roc-rk3399-*)
 			local soc_vendor=rockchip
 			local usb_device=2207:330c
 			local soc_tool="bin/rockusb download-boot"
+			local soc_tool_canfail=0
 			;;
 		*)
 			echo "$FUNCNAME: Board $board is not supported." >&2
@@ -186,7 +188,7 @@ BOARD_BOOTROM_USB_drive(){
 		fi
 		return 1
 	fi
-	vendor/$soc_vendor/$soc_tool "$bl"
+	vendor/$soc_vendor/$soc_tool "$bl" || [ "$soc_tool_canfail" -eq 1 ]
 	traps_popUntilLength 0
 	traps_stop
 	echo "Please wait a few seconds for the board to enumerate the ${2,,} as a USB drive.">2
