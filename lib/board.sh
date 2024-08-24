@@ -151,6 +151,12 @@ BOARD_BOOTROM_USB_drive(){
 	fi
 	local board=$1
 	case $board in
+		all-*-h5)
+			local usb_device=1f3a:efe8
+			local soc_vendor=allwinner
+			local soc_tool="bin/sunxi-fel-$(uname -m) uboot"
+			local soc_tool_canfail=0
+			;;
 		roc-rk3328-*)
 			local usb_device=2207:320c
 			local soc_vendor=rockchip
