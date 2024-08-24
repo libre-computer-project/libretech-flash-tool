@@ -191,5 +191,5 @@ BOARD_BOOTROM_USB_drive(){
 	vendor/$soc_vendor/$soc_tool "$bl" || [ "$soc_tool_canfail" -eq 1 ]
 	traps_popUntilLength 0
 	traps_stop
-	echo "Please wait a few seconds for the board to enumerate the ${2,,} as a USB drive.">2
+	echo "Please wait a minute for the board to enumerate the ${2,,} as a USB drive or an ACM debug device if the ${2,,} cannot be enumerated as a USB drive."
 }
