@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 if [ -z "$1" ] || [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
 	echo "$0 dt|config board[/master|linux-rolling-lts|linux-rolling-stable]" >&2
 	exit 1
