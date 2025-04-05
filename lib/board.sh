@@ -138,6 +138,7 @@ BOARD_EMMC_show(){
 BOARD_EMMC_test(){
 	echo "Not Implemented." >&2
 }
+
 BOARD_BOOTROM_USB_drive(){
 	if [ -z "$1" ]; then
 		echo "$FUNCNAME: Board required." >&2
@@ -197,5 +198,62 @@ BOARD_BOOTROM_USB_drive(){
 	vendor/$soc_vendor/$soc_tool "$bl" || [ "$soc_tool_canfail" -eq 1 ]
 	traps_popUntilLength 0
 	traps_stop
-	echo "Please wait a minute for the board to enumerate the ${2,,} as a USB drive or an ACM debug device if the ${2,,} cannot be enumerated as a USB drive."
+	echo "Please wait a minute for the board to enumerate the ${2,,} as a USB drive or an ACM debug device if the ${2,,} cannot be enumerated for any reason."
+}
+
+BOARD_BOOTROM_USB_dfu(){
+	if [ -z "$1" ]; then
+		echo "$FUNCNAME: Board required." >&2
+		return 2
+	fi
+	local board=$1
+	case $board in
+		all-*-h5)
+			local usb_device=1f3a:efe8
+			local soc_vendor=allwinner
+			local soc_tool="bin/sunxi-fel-$(uname -m) uboot"
+			local soc_tool_canfail=0
+			;;
+		roc-rk3328-*)
+			local usb_device=2207:320c
+			local soc_vendor=rockchip
+			local soc_tool="bin/rockusb-$(uname -m) download-boot"
+			local soc_tool_canfail=1
+			;;
+		roc-rk3399-*)
+			local soc_vendor=rockchip
+			local usb_device=2207:330c
+			local soc_tool="bin/rockusb-$(uname -m) download-boot"
+			local soc_tool_canfail=0
+			;;
+		*)
+			echo "$FUNCNAME: Board $board is not supported." >&2
+			return 2
+			;;
+	esac
+	set -x
+	local usb_device_list=$(lsusb -d $usb_device)
+	if [ -z "$usb_device_list" ]; then
+		echo "$FUNCNAME: No USB devices found matching $usb_device." >&2
+		return 1
+	fi
+
+	traps_start
+	local bl=$(mktemp)
+	local bl_wget_log=$(mktemp)
+	traps_push rm "$bl" "$bl_wget_log"
+
+	if ! wget -O "$bl" "$BOOTLOADER_URL/$board" 2> "$bl_wget_log"; then
+		cat $bl_wget_log
+		if grep -io "404\sNot\sFound" $bl_wget_log > /dev/null; then
+			echo "$FUNCNAME: BOARD $board bootloader could not be found." >&2
+		else
+			echo "$FUNCNAME: BOARD $board bootloader server could not be reached." >&2
+		fi
+		return 1
+	fi
+	vendor/$soc_vendor/$soc_tool "$bl" || [ "$soc_tool_canfail" -eq 1 ]
+	traps_popUntilLength 0
+	traps_stop
+	echo "Please wait a minute for the board to enumerate the ${2,,} as a USB DFU device or an ACM debug device if the ${2,,} cannot be enumerated."
 }

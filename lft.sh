@@ -106,7 +106,7 @@ main(){
 			echo "b-emmc|board-emmc bind|unbind|rebind" >&2
 			echo "b-emmc|board-emmc show" >&2
 			echo "b-emmc|board-emmc test read|write" >&2
-			echo "b-bootrom|board-bootrom usb-drive|fastboot|sdp BOARD [DEVICE] [INDEX]" >&2
+			echo "b-bootrom|board-bootrom usb-drive BOARD [DEVICE] [INDEX]" >&2
 			;;
 		b-list|board-list)
 			BOARD_list
@@ -127,6 +127,9 @@ main(){
 				"usb-drive")
 					BOARD_BOOTROM_USB_drive "${param[@]}"
 					;;
+#				"usb-dfu")
+#					BOARD_BOOTROM_USB_dfu "${param[@]}"
+#					;;
 				*)
 					echo "BOARD BootROM: ${action,,} not supported or implemented."
 					;;
