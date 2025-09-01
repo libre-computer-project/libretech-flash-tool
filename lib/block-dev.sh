@@ -17,6 +17,9 @@ BLOCK_DEV_get(){
 				/media/*)
 					:
 					;;
+				/run/media/*)
+					:
+					;;
 				*)
 					local blk_show=0
 					break
